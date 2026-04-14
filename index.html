@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d2b5e">
+<title>Rattana — ระบบค้นหาสินค้า</title>
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#0d2b5e;--navy2:#1a3a6b;--navy3:#0a1f47;
+  --gold:#c9a84c;--gold2:#f0c040;--gold3:#a07830;
+  --white:#ffffff;--light:#f4f6fb;--border:#d0daf0;
+  --text:#0d2b5e;--muted:#5a7099;
+  --red:#c0392b;--green:#1a7a4a;--orange:#d4700a;
+  --radius:14px;--rsm:8px;
+}
+html,body{height:100%;background:var(--light)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;color:var(--text);overflow:hidden}
+#app{height:100vh;overflow:hidden}
+.screen{display:none;flex-direction:column;height:100vh;background:var(--light)}
+.screen.active{display:flex}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;padding-top:max(14px,env(safe-area-inset-top))}
+.topbar-logo{width:34px;height:34px;background:var(--gold2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-logo svg{width:20px;height:20px;fill:var(--navy)}
+.topbar-title{color:var(--white);font-size:17px;font-weight:700;flex:1}
+.topbar-sub{color:var(--gold2);font-size:11px;opacity:.85}
+.topbar-back{background:none;border:none;cursor:pointer;padding:4px;display:flex}
+.topbar-back svg{width:22px;height:22px;fill:var(--gold2)}
+.user-chip{background:rgba(255,255,255,.1);border:1px solid rgba(240,192,64,.3);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.chip-name{color:var(--gold2);font-size:11px;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role-badge{background:var(--gold2);color:var(--navy);font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+
+/* LOGIN */
+#s-login{background:var(--navy)}
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px 24px}
+.login-logo{width:80px;height:80px;background:var(--gold2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.login-logo svg{width:48px;height:48px;fill:var(--navy)}
+.login-brand{font-size:30px;font-weight:800;color:var(--white);margin-bottom:4px;letter-spacing:-0.5px}
+.login-sub{font-size:13px;color:var(--gold2);margin-bottom:32px;opacity:.8}
+.login-card{background:var(--white);border-radius:var(--radius);padding:24px;width:100%;max-width:380px}
+.field-label{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;display:block}
+.field-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;font-size:15px;color:var(--text);background:var(--white);outline:none;transition:border .2s;margin-bottom:14px}
+.field-input:focus{border-color:var(--navy2)}
+.login-btn{width:100%;background:var(--navy);color:var(--gold2);border:none;border-radius:var(--rsm);padding:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;letter-spacing:.3px}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;min-height:18px;font-weight:500}
+.login-msg{color:var(--muted);font-size:13px;margin-top:8px;text-align:center;min-height:18px}
+
+/* SEARCH */
+.search-box{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px;margin-bottom:12px}
+.search-row{display:flex;gap:10px;align-items:center}
+.search-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:15px;color:var(--text);background:var(--light);outline:none;min-width:0}
+.search-input:focus{border-color:var(--navy2);background:var(--white)}
+.scan-btn{background:var(--navy);border:none;border-radius:var(--rsm);padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--gold2);font-size:13px;font-weight:600;flex-shrink:0}
+.scan-btn svg{width:18px;height:18px;fill:var(--gold2)}
+.search-hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+/* STATUS BAR */
+.sbar{background:var(--white);border-radius:var(--rsm);border:1px solid var(--border);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:40px}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.sdot.loading{background:var(--gold3);animation:pulse 1s infinite}
+.sdot.ok{background:var(--green)}
+.sdot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* LIST */
+.list-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:border-color .15s}
+.list-item:active{border-color:var(--navy2);background:#f0f4fb}
+.lthumb{width:46px;height:46px;border-radius:8px;background:#f0f4fa;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.lthumb svg{width:24px;height:24px;fill:#c0cce0}
+.lthumb img{width:46px;height:46px;object-fit:contain;border-radius:8px}
+.lname{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.lsku{font-size:12px;color:var(--muted)}
+.lprice{font-size:14px;font-weight:700;color:var(--navy2);margin-left:auto;flex-shrink:0;white-space:nowrap}
+.lchev{width:16px;height:16px;fill:var(--border);flex-shrink:0}
+.result-count{font-size:13px;color:var(--muted);margin-bottom:10px}
+
+/* DETAIL */
+.result-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.result-img{width:100%;height:200px;object-fit:contain;background:#f0f4fa;border-bottom:1px solid var(--border);display:block}
+.result-img-ph{width:100%;height:130px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.result-img-ph svg{width:52px;height:52px;fill:#c0cce0}
+.result-body{padding:18px}
+.result-name{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.3}
+.result-sku{font-size:12px;color:var(--muted);margin-bottom:10px}
+.result-cat{display:inline-block;background:#e8edf8;color:var(--navy2);font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:16px}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px;display:flex;align-items:center;gap:6px}
+.section-title svg{width:14px;height:14px}
+
+/* PRICE CARDS */
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.price-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.price-grid-1{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px}
+.pc{background:var(--light);border-radius:var(--rsm);border:1px solid var(--border);padding:12px;text-align:center}
+.pc.navy{background:var(--navy);border-color:var(--navy)}
+.pc.gold-bg{background:#fffbe6;border-color:#ddc020}
+.pc.restricted{background:#fff4e8;border-color:#e8a020}
+.pl{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.pc.navy .pl{color:rgba(240,192,64,.8)}
+.pc.gold-bg .pl{color:#7a6000}
+.pc.restricted .pl{color:#8a4a00}
+.pv{font-size:20px;font-weight:700;color:var(--navy)}
+.pc.navy .pv{color:var(--gold2)}
+.pc.gold-bg .pv{color:#7a5000}
+.pc.restricted .pv{color:#8a4a00}
+.pu{font-size:10px;color:var(--muted);margin-top:2px}
+.pc.navy .pu{color:rgba(240,192,64,.6)}
+.pc.gold-bg .pu{color:#9a7000}
+.pc.restricted .pu{color:#9a5a00}
+
+/* RESTRICTED LOCK */
+.lock-box{background:#fff4e8;border:1px solid #e8a020;border-radius:var(--rsm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.lock-box svg{width:22px;height:22px;fill:#e8a020;flex-shrink:0}
+.lock-text{font-size:13px;color:#8a4a00;font-weight:500}
+.lock-sub{font-size:11px;color:#b87030;margin-top:2px}
+
+/* INFO ROWS */
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--light)}
+.info-row:last-child{border-bottom:none}
+.ik{font-size:13px;color:var(--muted);flex-shrink:0;margin-right:12px}
+.iv{font-size:13px;font-weight:500;color:var(--navy);text-align:right;word-break:break-all}
+.iv.mono{font-family:monospace;font-size:12px}
+.stock-ok{color:var(--green)}
+.stock-low{color:var(--red)}
+.desc-box{background:var(--light);border-radius:var(--rsm);padding:12px 14px;margin-top:12px;font-size:13px;color:var(--muted);line-height:1.7}
+
+/* SCANNER */
+.scanner-wrap{background:var(--navy3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;position:relative}
+.scan-video{width:100%;height:260px;object-fit:cover;display:block}
+.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scanner-frame{width:230px;height:115px;border:2.5px solid var(--gold2);border-radius:12px;position:relative}
+.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 2s linear infinite}
+@keyframes scanline{0%{top:8px}100%{top:101px}}
+.scan-corner{position:absolute;width:16px;height:16px;border-color:var(--gold2);border-style:solid;border-width:0}
+.sc-tl{top:-2px;left:-2px;border-top-width:3px;border-left-width:3px;border-top-left-radius:4px}
+.sc-tr{top:-2px;right:-2px;border-top-width:3px;border-right-width:3px;border-top-right-radius:4px}
+.sc-bl{bottom:-2px;left:-2px;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:4px}
+.sc-br{bottom:-2px;right:-2px;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:4px}
+.scanner-hint{background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:10px;text-align:center;font-size:13px;color:var(--muted)}
+.stop-btn{background:var(--red);color:var(--white);border:none;border-radius:var(--rsm);padding:13px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px}
+.logout-row{display:flex;justify-content:center;padding:8px 0 16px}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:var(--rsm);padding:8px 20px;font-size:13px;color:var(--muted);cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="s-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 7H7v-2h4v2zm6 0h-4v-2h4v2zM3 5h18v2H3z"/></svg>
+    </div>
+    <div class="login-brand">Rattana</div>
+    <div class="login-sub">ระบบค้นหาสินค้า</div>
+    <div class="login-card">
+      <label class="field-label">ชื่อผู้ใช้</label>
+      <input class="field-input" type="text" id="inp-user" placeholder="username" autocomplete="username" autocapitalize="none">
+      <label class="field-label">รหัสผ่าน</label>
+      <input class="field-input" type="password" id="inp-pw" placeholder="password" autocomplete="current-password" style="margin-bottom:0">
+      <button class="login-btn" id="login-btn">เข้าสู่ระบบ</button>
+      <div class="login-err" id="login-err"></div>
+      <div class="login-msg" id="login-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="s-main" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9 7H7v-2h4v2zm6 0h-4v-2h4v2zM3 5h18v2H3z"/></svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="topbar-title">Rattana</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า</div>
+    </div>
+    <div class="user-chip">
+      <span class="chip-name" id="chip-name"></span>
+      <span class="role-badge" id="chip-role"></span>
+    </div>
+  </div>
+  <div class="content">
+    <div class="search-box">
+      <div class="search-row">
+        <input class="search-input" id="search-input" type="text" placeholder="ชื่อสินค้า หรือ 4-5 หลักท้ายบาร์โค้ด">
+        <button class="scan-btn" id="open-scanner">
+          <svg viewBox="0 0 24 24"><path d="M2 4h4v2H4v2H2V4zm16 0h4v4h-2V6h-2V4zM2 18h2v2h2v2H2v-4zm18 2h-2v2h4v-4h-2v2zM11 7h2v10h-2V7zM7 7h2v10H7V7zm10 0h2v10h-2V7z"/></svg>
+          สแกน
+        </button>
+      </div>
+      <div class="search-hint">พิมพ์ชื่อสินค้า หรือเลข 4-5 หลักท้ายบาร์โค้ด</div>
+    </div>
+    <div class="sbar"><div class="sdot" id="sdot"></div><span id="stext">พร้อมค้นหา</span></div>
+    <div id="results-area"></div>
+    <div class="logout-row"><button class="logout-btn" id="logout-btn">ออกจากระบบ</button></div>
+  </div>
+</div>
+
+<!-- SCANNER -->
+<div id="s-scanner" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" id="scanner-back"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div><div class="topbar-title">สแกนบาร์โค้ด</div><div class="topbar-sub">EAN-13</div></div>
+  </div>
+  <div class="content">
+    <div class="scanner-wrap">
+      <video id="scan-video" class="scan-video" autoplay muted playsinline></video>
+      <div class="scanner-overlay">
+        <div class="scanner-frame">
+          <div class="scanner-line"></div>
+          <div class="scan-corner sc-tl"></div>
+          <div class="scan-corner sc-tr"></div>
+          <div class="scan-corner sc-bl"></div>
+          <div class="scan-corner sc-br"></div>
+        </div>
+      </div>
+    </div>
+    <div class="scanner-hint">วางบาร์โค้ดให้อยู่ในกรอบ — กล้องจะสแกนอัตโนมัติ</div>
+    <button class="stop-btn" id="stop-scan">หยุดสแกน</button>
+    <div class="sbar"><div class="sdot loading" id="scan-dot"></div><span id="scan-txt">กำลังเปิดกล้อง...</span></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="s-detail" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" id="detail-back"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div style="flex:1;min-width:0">
+      <div class="topbar-title" id="dtitle" style="font-size:15px">รายละเอียดสินค้า</div>
+      <div class="topbar-sub" id="dsku"></div>
+    </div>
+    <div class="user-chip">
+      <span class="chip-name" id="dchip-name"></span>
+      <span class="role-badge" id="dchip-role"></span>
+    </div>
+  </div>
+  <div class="content" id="detail-content"></div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ============================================================
+// การตั้งค่า — แก้ไขที่นี่เท่านั้น
+// ============================================================
+const CONFIG = {
+  PROD_SHEET_ID: '1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw',
+  USER_SHEET_ID: '1sOqszajMR4KS5tWxfElnV-80Y9DsGJo_vBPwQopkgX4',
+  PROD_TAB:      'สินค้า',
+  USER_TAB:      'users',
+  ROLE_RESTRICTED: 5   // Role ขั้นต่ำที่เห็นราคาควบคุม
+};
+// ============================================================
+
+let allData = [];
+let currentUser = null;
+let scannerOn = false;
+
+function gvizURL(sheetId, tab) {
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+}
+
+async function fetchSheet(sheetId, tab) {
+  const res  = await fetch(gvizURL(sheetId, tab));
+  const text = await res.text();
+  const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
+  const cols = json.table.cols.map(c => c.label);
+  return json.table.rows.map(row => {
+    const obj = {};
+    cols.forEach((h, i) => {
+      obj[h] = (row.c && row.c[i] && row.c[i].v !== null) ? String(row.c[i].v).trim() : '';
+    });
+    return obj;
+  });
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setStat(msg, state) {
+  document.getElementById('sdot').className = 'sdot' + (state ? ' ' + state : '');
+  document.getElementById('stext').textContent = msg;
+}
+
+// ---------- LOGIN ----------
+async function doLogin() {
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pw').value;
+  document.getElementById('login-err').textContent = '';
+  if (!username || !password) {
+    document.getElementById('login-err').textContent = 'กรุณากรอก Username และ Password';
+    return;
+  }
+  document.getElementById('login-msg').textContent = 'กำลังตรวจสอบ...';
+  document.getElementById('login-btn').disabled = true;
+  try {
+    const users = await fetchSheet(CONFIG.USER_SHEET_ID, CONFIG.USER_TAB);
+    const matched = users.find(r =>
+      r['username'] === username && r['password'] === password
+    );
+    if (!matched) {
+      document.getElementById('login-err').textContent = 'Username หรือ Password ไม่ถูกต้อง';
+      document.getElementById('login-msg').textContent = '';
+      document.getElementById('login-btn').disabled = false;
+      return;
+    }
+    currentUser = {
+      username: matched['username'],
+      name:     matched['ชื่อ'] || matched['name'] || matched['username'],
+      role:     parseInt(matched['role']) || 1
+    };
+    document.getElementById('login-msg').textContent = '';
+    document.getElementById('login-btn').disabled = false;
+    updateUserChips();
+    show('s-main');
+    await loadProducts();
+  } catch (e) {
+    document.getElementById('login-err').textContent = 'เชื่อมต่อ Sheet ไม่สำเร็จ — ตรวจสอบสิทธิ์การเข้าถึง';
+    document.getElementById('login-msg').textContent = '';
+    document.getElementById('login-btn').disabled = false;
+  }
+}
+
+function updateUserChips() {
+  const n = currentUser ? currentUser.name : '';
+  const r = currentUser ? 'Role ' + currentUser.role : '';
+  ['chip-name','dchip-name'].forEach(id => document.getElementById(id).textContent = n);
+  ['chip-role','dchip-role'].forEach(id => document.getElementById(id).textContent = r);
+}
+
+async function loadProducts() {
+  setStat('กำลังโหลดข้อมูลสินค้า...', 'loading');
+  try {
+    const rows = await fetchSheet(CONFIG.PROD_SHEET_ID, CONFIG.PROD_TAB);
+    allData = rows.filter(r => r['barcode_ชิ้น'] || r['ชื่อสินค้า']);
+    setStat('โหลดสำเร็จ — พบ ' + allData.length.toLocaleString('th-TH') + ' รายการ', 'ok');
+  } catch (e) {
+    setStat('โหลดข้อมูลสินค้าไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet', 'err');
+  }
+}
+
+// ---------- EVENTS ----------
+document.getElementById('login-btn').onclick = doLogin;
+document.getElementById('inp-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('inp-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('inp-pw').focus(); });
+
+document.getElementById('logout-btn').onclick = () => {
+  currentUser = null; allData = [];
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pw').value = '';
+  document.getElementById('results-area').innerHTML = '';
+  document.getElementById('search-input').value = '';
+  show('s-login');
+};
+
+document.getElementById('detail-back').onclick = () => show('s-main');
+document.getElementById('scanner-back').onclick = () => { stopScan(); show('s-main'); };
+document.getElementById('stop-scan').onclick    = () => { stopScan(); show('s-main'); };
+document.getElementById('open-scanner').onclick = () => { show('s-scanner'); startScan(); };
+
+// ---------- SEARCH ----------
+function getImg(r) {
+  const u = r['รูปสินค้า'] || '';
+  if (!u) return null;
+  const m1 = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+  const m2 = u.match(/id=([a-zA-Z0-9_-]+)/);
+  if (m2) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  return u;
+}
+
+function fmtPrice(v) {
+  if (!v || v === '') return '-';
+  const n = parseFloat(v);
+  return isNaN(n) ? v : n.toLocaleString('th-TH');
+}
+
+function doSearch(q) {
+  if (!q.trim()) { document.getElementById('results-area').innerHTML = ''; return; }
+  q = q.trim().toLowerCase();
+  const found = allData.filter(r => {
+    if ((r['ชื่อสินค้า'] || '').toLowerCase().includes(q)) return true;
+    for (const k of ['barcode_ชิ้น','barcode_แพ็ก','barcode_แพ็กใหญ่','barcode_ลัง']) {
+      const b = (r[k] || '').toLowerCase();
+      if (b && (b.endsWith(q) || b.includes(q))) return true;
+    }
+    return false;
+  });
+  if (found.length === 1) { showDetail(found[0]); return; }
+  renderList(found);
+}
+
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', function () {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => doSearch(this.value), 350);
+});
+
+function renderList(results) {
+  const area = document.getElementById('results-area');
+  if (!results.length) {
+    area.innerHTML = '<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';
+    return;
+  }
+  const ICON = `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
+  let html = `<div class="result-count">พบ ${results.length} รายการ</div>`;
+  results.slice(0, 100).forEach(r => {
+    const img = getImg(r);
+    const thumb = img
+      ? `<img src="${img}" style="width:46px;height:46px;border-radius:8px;object-fit:contain" onerror="this.style.display='none'">`
+      : ICON;
+    const idx = allData.indexOf(r);
+    html += `<div class="list-item" onclick="showDetail(allData[${idx}])">
+      <div class="lthumb">${thumb}</div>
+      <div style="flex:1;min-width:0">
+        <div class="lname">${r['ชื่อสินค้า'] || '-'}</div>
+        <div class="lsku">SKU: ${r['sku'] || r['barcode_ชิ้น'] || '-'}</div>
+      </div>
+      <div class="lprice">${fmtPrice(r['ราคาชิ้น'])} ฿</div>
+      <svg class="lchev" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </div>`;
+  });
+  area.innerHTML = html;
+}
+
+// ---------- DETAIL ----------
+function showDetail(r) {
+  const canSeeRestricted = currentUser && currentUser.role >= CONFIG.ROLE_RESTRICTED;
+  const img   = getImg(r);
+  const stock = parseInt(r['สต็อก']) || 0;
+  const stockCls = stock > 10 ? 'stock-ok' : 'stock-low';
+  const stockTxt = stock === 0 ? 'หมดสต็อก' : stock <= 10
+    ? `เหลือน้อย (${stock} ชิ้น)` : stock.toLocaleString('th-TH') + ' ชิ้น';
+
+  const NOIMG = `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
+  const imgHtml = img
+    ? `<img src="${img}" class="result-img" onerror="this.outerHTML='<div class=result-img-ph>${NOIMG}</div>'">`
+    : `<div class="result-img-ph">${NOIMG}</div>`;
+
+  const restrictedBlock = canSeeRestricted
+    ? `<div class="section-title" style="color:#d4700a">
+        <svg style="width:14px;height:14px;fill:#d4700a" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        ราคาควบคุม (Role ${CONFIG.ROLE_RESTRICTED}+)
+      </div>
+      <div class="price-grid-1">
+        <div class="pc restricted">
+          <div class="pl">ราคาควบคุม</div>
+          <div class="pv">${fmtPrice(r['ราคาควบคุม'])}</div>
+          <div class="pu">บาท</div>
+        </div>
+      </div>`
+    : `<div class="lock-box">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <div>
+          <div class="lock-text">ราคาควบคุม</div>
+          <div class="lock-sub">ต้องการ Role ${CONFIG.ROLE_RESTRICTED} ขึ้นไป</div>
+        </div>
+      </div>`;
+
+  const bcs = [
+    { l: 'บาร์โค้ดชิ้น',   v: r['barcode_ชิ้น'] },
+    { l: 'บาร์โค้ดแพ็ก',   v: r['barcode_แพ็ก'] },
+    { l: 'บาร์โค้ดแพ็กใหญ่', v: r['barcode_แพ็กใหญ่'] },
+    { l: 'บาร์โค้ดลัง',    v: r['barcode_ลัง'] }
+  ].filter(b => b.v && b.v !== '');
+
+  document.getElementById('dtitle').textContent = r['ชื่อสินค้า'] || 'รายละเอียดสินค้า';
+  document.getElementById('dsku').textContent   = r['sku'] ? 'SKU: ' + r['sku'] : '';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="result-card">
+      ${imgHtml}
+      <div class="result-body">
+        <div class="result-name">${r['ชื่อสินค้า'] || '-'}</div>
+        <div class="result-sku">SKU: ${r['sku'] || '-'}</div>
+        ${r['หมวดหมู่'] ? `<div class="result-cat">${r['หมวดหมู่']}</div>` : ''}
+
+        <div class="section-title">
+          <svg style="fill:var(--navy)" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+          ราคาขาย
+        </div>
+        <div class="price-grid">
+          <div class="pc navy">
+            <div class="pl">ราคาชิ้น</div>
+            <div class="pv">${fmtPrice(r['ราคาชิ้น'])}</div>
+            <div class="pu">บาท / ชิ้น</div>
+          </div>
+          <div class="pc">
+            <div class="pl">ราคาแพ็ก</div>
+            <div class="pv">${fmtPrice(r['ราคาแพ็ก'])}</div>
+            <div class="pu">บาท / แพ็ก</div>
+          </div>
+          <div class="pc">
+            <div class="pl">ราคาลังปลีก</div>
+            <div class="pv">${fmtPrice(r['ราคาลังปลีก'])}</div>
+            <div class="pu">บาท / ลัง</div>
+          </div>
+          <div class="pc">
+            <div class="pl">ราคาส่ง</div>
+            <div class="pv">${fmtPrice(r['ราคาส่ง'])}</div>
+            <div class="pu">บาท</div>
+          </div>
+        </div>
+        <div class="price-grid-1">
+          <div class="pc gold-bg">
+            <div class="pl">ราคาพาเลท</div>
+            <div class="pv">${fmtPrice(r['ราคาพาเลท'])}</div>
+            <div class="pu">บาท / พาเลท</div>
+          </div>
+        </div>
+
+        ${restrictedBlock}
+
+        <div class="section-title">
+          <svg style="fill:var(--muted)" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          ข้อมูลทั่วไป
+        </div>
+        <div class="info-row"><span class="ik">จำนวนต่อแพ็ก</span><span class="iv">${r['จำนวนต่อแพ็ก'] || '-'}</span></div>
+        <div class="info-row"><span class="ik">สต็อก</span><span class="iv ${stockCls}">${stockTxt}</span></div>
+        <div class="info-row"><span class="ik">ผู้จัดจำหน่าย</span><span class="iv">${r['ผู้จัดจำหน่าย'] || '-'}</span></div>
+        ${bcs.map(b => `<div class="info-row"><span class="ik">${b.l}</span><span class="iv mono">${b.v}</span></div>`).join('')}
+        ${r['รายละเอียด'] ? `<div class="desc-box">${r['รายละเอียด']}</div>` : ''}
+      </div>
+    </div>`;
+  show('s-detail');
+}
+
+// ---------- BARCODE SCANNER ----------
+function scanFound(code) {
+  stopScan();
+  show('s-main');
+  document.getElementById('search-input').value = code;
+  setStat('สแกนได้: ' + code + ' — กำลังค้นหา...', 'loading');
+  const found = allData.filter(r =>
+    ['barcode_ชิ้น','barcode_แพ็ก','barcode_แพ็กใหญ่','barcode_ลัง']
+      .some(k => r[k] && r[k].trim() === code.trim())
+  );
+  if (found.length === 1) {
+    setStat('พบ: ' + found[0]['ชื่อสินค้า'], 'ok');
+    showDetail(found[0]);
+  } else if (found.length > 1) {
+    setStat('พบ ' + found.length + ' รายการ', 'ok');
+    renderList(found);
+  } else {
+    setStat('ไม่พบบาร์โค้ด ' + code + ' ในระบบ', 'err');
+    document.getElementById('results-area').innerHTML =
+      `<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด ${code}</div>`;
+  }
+}
+
+function startScan() {
+  document.getElementById('scan-txt').textContent = 'กำลังเปิดกล้อง...';
+  document.getElementById('scan-dot').className = 'sdot loading';
+  if (typeof Quagga === 'undefined') {
+    document.getElementById('scan-txt').textContent = 'โหลดไลบรารีไม่สำเร็จ — ลองพิมพ์แทน';
+    document.getElementById('scan-dot').className = 'sdot err';
+    return;
+  }
+  Quagga.init({
+    inputStream: {
+      name: 'Live', type: 'LiveStream',
+      target: document.getElementById('scan-video'),
+      constraints: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    },
+    decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader'] },
+    locate: true
+  }, err => {
+    if (err) {
+      document.getElementById('scan-txt').textContent = 'ไม่สามารถเข้าถึงกล้องได้';
+      document.getElementById('scan-dot').className = 'sdot err';
+      return;
+    }
+    Quagga.start();
+    scannerOn = true;
+    document.getElementById('scan-txt').textContent = 'กล้องพร้อม — วางบาร์โค้ดในกรอบสีทอง';
+    document.getElementById('scan-dot').className = 'sdot ok';
+  });
+  Quagga.onDetected(result => {
+    if (result.codeResult && result.codeResult.code) scanFound(result.codeResult.code);
+  });
+}
+
+function stopScan() {
+  if (typeof Quagga !== 'undefined' && scannerOn) { try { Quagga.stop(); } catch (e) {} }
+  scannerOn = false;
+}
+</script>
+</body>
+</html>
