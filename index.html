@@ -72,18 +72,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sdot.err{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* LIST */
+/* LIST CARDS — with price grid */
 .result-count{font-size:13px;color:var(--muted);margin-bottom:10px;padding:0 2px}
-.list-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:border-color .15s}
+.list-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
 .list-item:active{border-color:var(--navy2);background:#f0f4fb}
+.list-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .lthumb{width:46px;height:46px;border-radius:8px;background:#f0f4fa;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .lthumb svg{width:24px;height:24px;fill:#c0cce0}
 .lthumb img{width:46px;height:46px;object-fit:contain;border-radius:8px}
-.lname{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px}
-.lsku{font-size:12px;color:var(--muted)}
-.lprice{font-size:14px;font-weight:700;color:var(--navy2);margin-left:auto;flex-shrink:0;white-space:nowrap;padding-left:8px}
-.lchev{width:16px;height:16px;fill:var(--border);flex-shrink:0}
+.lname{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px;line-height:1.3}
+.lsku{font-size:11px;color:var(--muted)}
+.lchev{width:16px;height:16px;fill:var(--border);flex-shrink:0;margin-left:auto}
 .exact-badge{display:inline-block;background:#e0f0e8;color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
+
+/* Mini price grid in list card */
+.list-price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-top:1px solid var(--light);padding-top:10px}
+.lpc{background:var(--light);border-radius:6px;padding:7px 6px;text-align:center}
+.lpc:first-child{background:var(--navy)}
+.lpl{font-size:9px;color:var(--muted);margin-bottom:3px;font-weight:600;text-transform:uppercase}
+.lpc:first-child .lpl{color:rgba(240,192,64,.8)}
+.lpv{font-size:13px;font-weight:700;color:var(--navy)}
+.lpc:first-child .lpv{color:var(--gold2)}
+.list-stock-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:8px}
+.stock-label{font-size:11px;color:var(--muted)}
+.stock-num{font-size:13px;font-weight:600;color:var(--navy)}
 
 /* DETAIL */
 .result-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
@@ -98,7 +110,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
 .section-title svg{width:14px;height:14px;flex-shrink:0}
 
-/* PRICE TABLES */
 .price-table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:12px}
 .price-table th{background:var(--navy);color:var(--gold2);padding:8px 6px;text-align:center;font-size:10px;font-weight:600}
 .price-table th:first-child{text-align:left;border-radius:var(--rsm) 0 0 0;padding-left:10px}
@@ -126,15 +137,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .ik{font-size:13px;color:var(--muted);flex-shrink:0;margin-right:12px}
 .iv{font-size:13px;font-weight:500;color:var(--navy);text-align:right;word-break:break-all}
 .iv.mono{font-family:monospace;font-size:12px}
-.stock-ok{color:var(--green)}
-.stock-low{color:var(--red)}
 
 /* SCANNER */
 .scanner-wrap{background:var(--navy3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;position:relative}
 .scan-video{width:100%;height:280px;object-fit:cover;display:block;background:#000}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .scanner-frame{width:240px;height:120px;border:2.5px solid var(--gold2);border-radius:12px;position:relative}
-.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 2s linear infinite}
+.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 1.5s linear infinite}
 @keyframes scanline{0%{top:8px}100%{top:108px}}
 .scan-corner{position:absolute;width:18px;height:18px;border-color:var(--gold2);border-style:solid;border-width:0}
 .sc-tl{top:-2px;left:-2px;border-top-width:3px;border-left-width:3px;border-top-left-radius:4px}
@@ -214,7 +223,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 <div id="s-scanner" class="screen">
   <div class="topbar">
     <button class="topbar-back" id="scanner-back"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
-    <div><div class="topbar-title">สแกนบาร์โค้ด</div><div class="topbar-sub">EAN-13</div></div>
+    <div><div class="topbar-title">สแกนบาร์โค้ด</div><div class="topbar-sub">EAN-13 / All formats</div></div>
   </div>
   <div class="content">
     <div class="scanner-wrap">
@@ -255,7 +264,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 </div>
 
-<!-- ZXing library for reliable iPhone barcode scanning -->
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 <script>
 const CONFIG = {
@@ -264,7 +272,7 @@ const CONFIG = {
   PROD_TAB:        'สินค้า',
   USER_TAB:        'users',
   ROLE_RESTRICTED: 5,
-  SESSION_KEY:     'rattana_v4_session'
+  SESSION_KEY:     'rattana_v5_session'
 };
 
 const BC_COLS = ['CODE EA','CODE PA','CODE BP','CODE CS'];
@@ -293,7 +301,7 @@ async function fetchSheet(id, tab) {
   });
 }
 
-// ---------- UI HELPERS ----------
+// ---------- UI ----------
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -305,14 +313,18 @@ function setStat(msg, state) {
 function fmtPrice(v) {
   if (!v || v === '') return '—';
   const n = parseFloat(v);
-  return isNaN(n) ? v : n.toLocaleString('th-TH');
+  return isNaN(n) ? '—' : n.toLocaleString('th-TH');
+}
+function fmtStock(v) {
+  if (!v || v === '') return '—';
+  const n = parseInt(v);
+  return isNaN(n) ? '—' : n.toLocaleString('th-TH');
 }
 
 // ---------- SESSION ----------
 function saveSession(u) { try { localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(u)); } catch(e){} }
 function loadSession()  { try { return JSON.parse(localStorage.getItem(CONFIG.SESSION_KEY)); } catch(e){ return null; } }
 function clearSession() { try { localStorage.removeItem(CONFIG.SESSION_KEY); } catch(e){} }
-
 function updateChips() {
   const n = currentUser ? currentUser.name : '';
   const r = currentUser ? 'Role '+currentUser.role : '';
@@ -374,7 +386,6 @@ function doLogout() {
   show('s-login');
 }
 
-// Auto-login
 (function boot() {
   const saved = loadSession();
   if (saved && saved.username && saved.role) { currentUser = saved; enterApp(); }
@@ -394,7 +405,7 @@ document.getElementById('manual-search-btn').onclick = () => {
   if (v) { stopScan(); onScanFound(v); }
 };
 document.getElementById('manual-bc').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { const v = e.target.value.trim(); if(v) { stopScan(); onScanFound(v); } }
+  if (e.key==='Enter') { const v=e.target.value.trim(); if(v){ stopScan(); onScanFound(v); } }
 });
 
 // ---------- SEARCH ----------
@@ -410,27 +421,19 @@ document.getElementById('search-input').addEventListener('input', function() {
   const val = this.value;
   document.getElementById('clear-btn').classList.toggle('visible', val.length > 0);
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => doSearch(val), 350);
+  searchTimer = setTimeout(() => doSearch(val), 300);
 });
 
-// Score function for relevance ordering
 function scoreResult(r, q) {
   const name  = (r['PRODUCT NAME'] || '').toLowerCase();
   const short = (r['SHORT NAME']   || '').toLowerCase();
   const codes = BC_COLS.map(k => (r[k] || '').toLowerCase());
-
-  // Exact barcode match = highest score
-  if (codes.some(b => b === q)) return 100;
-  // Barcode ends with query
-  if (codes.some(b => b.endsWith(q))) return 80;
-  // Exact name match
-  if (name === q || short === q) return 70;
-  // Name starts with query
+  if (codes.some(b => b === q))            return 100;
+  if (codes.some(b => b.endsWith(q)))      return 80;
+  if (name === q || short === q)           return 70;
   if (name.startsWith(q) || short.startsWith(q)) return 50;
-  // Name contains query
-  if (name.includes(q) || short.includes(q)) return 30;
-  // Barcode contains query
-  if (codes.some(b => b.includes(q))) return 20;
+  if (name.includes(q) || short.includes(q))     return 30;
+  if (codes.some(b => b.includes(q)))      return 20;
   return 0;
 }
 
@@ -439,17 +442,9 @@ function isExactBarcodeMatch(r, q) {
 }
 
 function doSearch(raw) {
-  if (!raw.trim()) {
-    document.getElementById('results-area').innerHTML = '';
-    setStat('พร้อมค้นหา', '');
-    return;
-  }
+  if (!raw.trim()) { clearSearch(); return; }
   const q = raw.trim().toLowerCase();
-
-  // Check if query looks like a barcode (mostly digits)
   const looksLikeBarcode = /^\d{4,}$/.test(raw.trim());
-
-  // Score and filter
   const scored = allData
     .map(r => ({ r, score: scoreResult(r, q) }))
     .filter(x => x.score > 0)
@@ -462,17 +457,17 @@ function doSearch(raw) {
     return;
   }
 
-  // Exact barcode → go straight to detail
-  if (looksLikeBarcode && scored.length >= 1 && isExactBarcodeMatch(scored[0].r, raw.trim())) {
-    const exactMatches = scored.filter(x => isExactBarcodeMatch(x.r, raw.trim()));
-    if (exactMatches.length === 1) {
-      setStat('พบ: '+exactMatches[0].r['PRODUCT NAME'], 'ok');
-      showDetail(exactMatches[0].r);
+  // Exact barcode → go straight
+  if (looksLikeBarcode && isExactBarcodeMatch(scored[0].r, raw.trim())) {
+    const exact = scored.filter(x => isExactBarcodeMatch(x.r, raw.trim()));
+    if (exact.length === 1) {
+      setStat('พบ: '+exact[0].r['PRODUCT NAME'], 'ok');
+      showDetail(exact[0].r);
       return;
     }
   }
 
-  // Everything else → show list (name search always shows list)
+  // Name search or multiple → always show list
   setStat('พบ '+scored.length+' รายการ — กดเพื่อเลือกสินค้า', 'ok');
   renderList(scored.map(x => x.r), q);
 }
@@ -498,22 +493,50 @@ function renderList(results, q) {
   }
   let html = `<div class="result-count">พบ ${results.length} รายการ — กดเพื่อเลือกสินค้า</div>`;
   results.slice(0, 100).forEach(r => {
-    const img   = getImg(r);
-    const thumb = img
+    const img     = getImg(r);
+    const thumb   = img
       ? `<img src="${img}" style="width:46px;height:46px;border-radius:8px;object-fit:contain" onerror="this.style.display='none'">`
       : NOIMG;
     const idx     = allData.indexOf(r);
     const cat     = [r['CAT GROUP'], r['CAT BRAND']].filter(Boolean).join(' · ');
     const isExact = q && BC_COLS.some(k => (r[k]||'').toLowerCase() === q);
     const badge   = isExact ? '<span class="exact-badge">ตรงทุกหลัก</span>' : '';
-    html += `<div class="list-item" onclick="showDetail(allData[${idx}])">
-      <div class="lthumb">${thumb}</div>
-      <div style="flex:1;min-width:0">
-        <div class="lname">${r['PRODUCT NAME']||'—'}${badge}</div>
-        <div class="lsku">${r['CODE EA']?'CODE EA: '+r['CODE EA']:''}${cat?' · '+cat:''}</div>
+
+    // Price grid EA/PA/BP/CS (CC03)
+    const priceGrid = `
+      <div class="list-price-grid">
+        <div class="lpc">
+          <div class="lpl">EA</div>
+          <div class="lpv">${fmtPrice(r['PRICE CC03 EA'])}</div>
+        </div>
+        <div class="lpc">
+          <div class="lpl">PA</div>
+          <div class="lpv">${fmtPrice(r['PRICE CC03 PA'])}</div>
+        </div>
+        <div class="lpc">
+          <div class="lpl">BP</div>
+          <div class="lpv">${fmtPrice(r['PRICE CC03 BP'])}</div>
+        </div>
+        <div class="lpc">
+          <div class="lpl">CS</div>
+          <div class="lpv">${fmtPrice(r['PRICE CC03 CS'])}</div>
+        </div>
       </div>
-      <div class="lprice">${fmtPrice(r['PRICE CC03 EA'])} ฿</div>
-      <svg class="lchev" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      <div class="list-stock-row">
+        <span class="stock-label">สต็อก C4:</span>
+        <span class="stock-num">${fmtStock(r['STOCK C4'])}</span>
+      </div>`;
+
+    html += `<div class="list-item" onclick="showDetail(allData[${idx}])">
+      <div class="list-top">
+        <div class="lthumb">${thumb}</div>
+        <div style="flex:1;min-width:0">
+          <div class="lname">${r['PRODUCT NAME']||'—'}${badge}</div>
+          <div class="lsku">${r['CODE EA']?'CODE EA: '+r['CODE EA']:''}${cat?' · '+cat:''}</div>
+        </div>
+        <svg class="lchev" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </div>
+      ${priceGrid}
     </div>`;
   });
   area.innerHTML = html;
@@ -530,10 +553,10 @@ function showDetail(r) {
   const cats = [r['CAT BU'],r['CAT TYPE'],r['CAT GROUP'],r['CAT BRAND'],r['CAT SIZE']].filter(Boolean);
 
   const units = [
-    {u:'EA (ชิ้น)',   code:r['CODE EA'], rattana:r['RATTANA UNIT EA'], unit:r['UNIT EA'], qty:r['QTY EA']},
-    {u:'PA (แพ็ก)',   code:r['CODE PA'], rattana:r['RATTANA UNIT PA'], unit:r['UNIT PA'], qty:r['QTY PA']},
+    {u:'EA (ชิ้น)',    code:r['CODE EA'], rattana:r['RATTANA UNIT EA'], unit:r['UNIT EA'], qty:r['QTY EA']},
+    {u:'PA (แพ็ก)',    code:r['CODE PA'], rattana:r['RATTANA UNIT PA'], unit:r['UNIT PA'], qty:r['QTY PA']},
     {u:'BP (แพ็กใหญ่)',code:r['CODE BP'], rattana:r['RATTANA UNIT BP'], unit:r['UNIT BP'], qty:r['QTY BP']},
-    {u:'CS (ลัง)',    code:r['CODE CS'], rattana:r['RATTANA UNIT CS'], unit:r['UNIT CS'], qty:r['QTY CS']},
+    {u:'CS (ลัง)',     code:r['CODE CS'], rattana:r['RATTANA UNIT CS'], unit:r['UNIT CS'], qty:r['QTY CS']},
   ].filter(x => x.code || x.rattana || x.unit);
 
   const unitRows = units.map(x =>
@@ -544,7 +567,9 @@ function showDetail(r) {
     {l:'ปลีก (CC03)',    ea:r['PRICE CC03 EA'], pa:r['PRICE CC03 PA'], bp:r['PRICE CC03 BP'], cs:r['PRICE CC03 CS']},
     {l:'10 ลัง (CC02)', ea:r['PRICE CC02 EA'], pa:r['PRICE CC02 PA'], bp:r['PRICE CC02 BP'], cs:r['PRICE CC02 CS']},
     {l:'พาเลท (CC01)',  ea:r['PRICE CC01 EA'], pa:r['PRICE CC01 PA'], bp:r['PRICE CC01 BP'], cs:r['PRICE CC01 CS']},
-  ].map(p => `<tr><td>${p.l}</td><td>${fmtPrice(p.ea)}</td><td>${fmtPrice(p.pa)}</td><td>${fmtPrice(p.bp)}</td><td>${fmtPrice(p.cs)}</td></tr>`).join('');
+  ].map(p =>
+    `<tr><td>${p.l}</td><td>${fmtPrice(p.ea)}</td><td>${fmtPrice(p.pa)}</td><td>${fmtPrice(p.bp)}</td><td>${fmtPrice(p.cs)}</td></tr>`
+  ).join('');
 
   const cc00Block = canSeeCC00
     ? `<div class="section-title" style="color:#8a4a00">
@@ -560,10 +585,6 @@ function showDetail(r) {
         <div><div class="lock-text">ราคาควบคุม (CC00)</div><div class="lock-sub">ต้องการ Role ${CONFIG.ROLE_RESTRICTED} ขึ้นไป</div></div>
       </div>`;
 
-  const stk    = parseInt(r['STOCK C4']) || 0;
-  const stkTxt = stk === 0 ? 'หมดสต็อก' : stk <= 10 ? `เหลือน้อย (${stk})` : stk.toLocaleString('th-TH')+' ชิ้น';
-  const stkCls = stk > 10 ? 'stock-ok' : 'stock-low';
-
   document.getElementById('dtitle').textContent = r['PRODUCT NAME'] || 'รายละเอียดสินค้า';
   document.getElementById('dsku').textContent   = r['SHORT NAME'] || '';
 
@@ -572,8 +593,8 @@ function showDetail(r) {
       ${imgHtml}
       <div class="result-body">
         <div class="result-name">${r['PRODUCT NAME']||'—'}</div>
-        ${r['SHORT NAME']   ? `<div class="result-short">${r['SHORT NAME']}</div>` : ''}
-        ${r['DESCRIPTION']  ? `<div class="result-sku">${r['DESCRIPTION']}</div>`  : ''}
+        ${r['SHORT NAME']  ? `<div class="result-short">${r['SHORT NAME']}</div>` : ''}
+        ${r['DESCRIPTION'] ? `<div class="result-sku">${r['DESCRIPTION']}</div>`  : ''}
         <div style="margin-bottom:8px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
 
         <div class="section-title">หน่วยและบาร์โค้ด</div>
@@ -591,8 +612,8 @@ function showDetail(r) {
         ${cc00Block}
 
         <div class="section-title">สต็อกและข้อมูล</div>
-        <div class="info-row"><span class="ik">สต็อก C4</span><span class="iv ${stkCls}">${stkTxt}</span></div>
-        <div class="info-row"><span class="ik">สต็อก W4</span><span class="iv">${r['STOCK W4']||'—'}</span></div>
+        <div class="info-row"><span class="ik">สต็อก C4</span><span class="iv">${fmtStock(r['STOCK C4'])}</span></div>
+        <div class="info-row"><span class="ik">สต็อก W4</span><span class="iv">${fmtStock(r['STOCK W4'])}</span></div>
         <div class="info-row"><span class="ik">เฉลี่ย 3 เดือน</span><span class="iv">${r['AVERAGE 3MONTH']||'—'}</span></div>
         <div class="info-row"><span class="ik">Rank C4</span><span class="iv">${r['RANK C4']||'—'}</span></div>
         <div class="info-row"><span class="ik">Location</span><span class="iv">${r['Location']||'—'}</span></div>
@@ -607,14 +628,12 @@ function showDetail(r) {
   show('s-detail');
 }
 
-// ---------- SCANNER (ZXing — works on iPhone 12+ Safari) ----------
+// ---------- SCANNER (ZXing — fast mode) ----------
 function startScan() {
   document.getElementById('scan-txt').textContent = 'กำลังเปิดกล้อง...';
   document.getElementById('scan-dot').className   = 'sdot loading';
   lastScanned   = '';
   scannerActive = true;
-
-  const video = document.getElementById('scan-video');
 
   if (typeof ZXing === 'undefined') {
     document.getElementById('scan-txt').textContent = 'โหลดไลบรารีไม่ได้ — ใช้ช่องพิมพ์ด้านล่าง';
@@ -623,19 +642,23 @@ function startScan() {
   }
 
   try {
+    // Fast mode: scan every 100ms, try harder, support all common formats
     const hints = new Map();
-    const formats = [
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
       ZXing.BarcodeFormat.EAN_13,
       ZXing.BarcodeFormat.EAN_8,
       ZXing.BarcodeFormat.UPC_A,
       ZXing.BarcodeFormat.UPC_E,
       ZXing.BarcodeFormat.CODE_128,
       ZXing.BarcodeFormat.CODE_39,
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+      ZXing.BarcodeFormat.ITF,
+      ZXing.BarcodeFormat.QR_CODE,
+    ]);
 
-    zxingReader = new ZXing.BrowserMultiFormatReader(hints, 500);
+    zxingReader = new ZXing.BrowserMultiFormatReader(hints, 100);
+
+    const video = document.getElementById('scan-video');
 
     zxingReader.decodeFromVideoDevice(null, video, (result, err) => {
       if (!scannerActive) return;
@@ -681,14 +704,14 @@ function onScanFound(code) {
   document.getElementById('clear-btn').classList.add('visible');
   setStat('สแกนได้: '+code+' — กำลังค้นหา...', 'loading');
 
-  const exactMatches = allData.filter(r => BC_COLS.some(k => r[k] && r[k].trim() === code.trim()));
+  const exact = allData.filter(r => BC_COLS.some(k => r[k] && r[k].trim() === code.trim()));
 
-  if (exactMatches.length === 1) {
-    setStat('พบ: '+exactMatches[0]['PRODUCT NAME'], 'ok');
-    showDetail(exactMatches[0]);
-  } else if (exactMatches.length > 1) {
-    setStat('พบ '+exactMatches.length+' รายการ — กรุณาเลือก', 'ok');
-    renderList(exactMatches, code.toLowerCase());
+  if (exact.length === 1) {
+    setStat('พบ: '+exact[0]['PRODUCT NAME'], 'ok');
+    showDetail(exact[0]);
+  } else if (exact.length > 1) {
+    setStat('พบ '+exact.length+' รายการ — กรุณาเลือก', 'ok');
+    renderList(exact, code.toLowerCase());
   } else {
     setStat('ไม่พบบาร์โค้ด '+code+' ในระบบ', 'err');
     document.getElementById('results-area').innerHTML =
