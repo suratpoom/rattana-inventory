@@ -373,12 +373,12 @@ function getImg(r){
   // Read from 'image' column — supports File ID, sharing link, or direct URL
   const u=r['image']||r['IMAGE']||'';
   if(!u)return null;
-  // Raw File ID (no slashes, ~33 chars)
-  if(/^[a-zA-Z0-9_-]{25,60}$/.test(u))return `https://drive.google.com/uc?export=view&id=${u}`;
-  // Sharing link with /d/ID/
-  const m1=u.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m1)return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
-  // Link with ?id=ID
-  const m2=u.match(/id=([a-zA-Z0-9_-]+)/);if(m2)return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  // Extract File ID from any format, then use lh3.googleusercontent.com (bypasses CORS)
+  let fileId=null;
+  if(/^[a-zA-Z0-9_-]{25,60}$/.test(u)){fileId=u;}
+  else{const m1=u.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m1)fileId=m1[1];}
+  if(!fileId){const m2=u.match(/id=([a-zA-Z0-9_-]+)/);if(m2)fileId=m2[1];}
+  if(fileId)return `https://lh3.googleusercontent.com/d/${fileId}`;
   return u;
 }
 
