@@ -35,6 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .role-badge{background:var(--gold2);color:var(--navy);font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0}
 .content{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 
+/* LOGIN */
 #s-login{background:var(--navy)}
 .login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px 24px}
 .login-logo{width:80px;height:80px;background:var(--gold2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
@@ -50,14 +51,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;min-height:18px;font-weight:500}
 .login-msg{color:var(--muted);font-size:13px;margin-top:8px;text-align:center;min-height:18px}
 
+/* SEARCH */
 .search-box{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px;margin-bottom:12px}
 .search-row{display:flex;gap:10px;align-items:center}
-.search-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:15px;color:var(--text);background:var(--light);outline:none;min-width:0}
+.search-input-wrap{flex:1;position:relative;display:flex;align-items:center}
+.search-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 36px 11px 13px;font-size:15px;color:var(--text);background:var(--light);outline:none}
 .search-input:focus{border-color:var(--navy2);background:var(--white)}
+.clear-btn{position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;display:none;align-items:center;justify-content:center}
+.clear-btn.visible{display:flex}
+.clear-btn svg{width:16px;height:16px;fill:var(--muted)}
 .scan-btn{background:var(--navy);border:none;border-radius:var(--rsm);padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--gold2);font-size:13px;font-weight:600;flex-shrink:0}
 .scan-btn svg{width:18px;height:18px;fill:var(--gold2)}
 .search-hint{font-size:12px;color:var(--muted);margin-top:8px}
 
+/* STATUS */
 .sbar{background:var(--white);border-radius:var(--rsm);border:1px solid var(--border);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:40px}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
 .sdot.loading{background:var(--gold3);animation:pulse 1s infinite}
@@ -65,6 +72,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sdot.err{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
+/* LIST */
 .result-count{font-size:13px;color:var(--muted);margin-bottom:10px;padding:0 2px}
 .list-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:border-color .15s}
 .list-item:active{border-color:var(--navy2);background:#f0f4fb}
@@ -75,7 +83,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .lsku{font-size:12px;color:var(--muted)}
 .lprice{font-size:14px;font-weight:700;color:var(--navy2);margin-left:auto;flex-shrink:0;white-space:nowrap;padding-left:8px}
 .lchev{width:16px;height:16px;fill:var(--border);flex-shrink:0}
+.exact-badge{display:inline-block;background:#e0f0e8;color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
 
+/* DETAIL */
 .result-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
 .result-img{width:100%;height:200px;object-fit:contain;background:#f0f4fa;border-bottom:1px solid var(--border);display:block}
 .result-img-ph{width:100%;height:130px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center}
@@ -85,10 +95,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .result-short{font-size:13px;color:var(--muted);margin-bottom:4px}
 .result-sku{font-size:12px;color:var(--muted);margin-bottom:10px}
 .result-cat{display:inline-block;background:#e8edf8;color:var(--navy2);font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;margin-right:4px;margin-bottom:4px}
-
 .section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
 .section-title svg{width:14px;height:14px;flex-shrink:0}
 
+/* PRICE TABLES */
 .price-table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:12px}
 .price-table th{background:var(--navy);color:var(--gold2);padding:8px 6px;text-align:center;font-size:10px;font-weight:600}
 .price-table th:first-child{text-align:left;border-radius:var(--rsm) 0 0 0;padding-left:10px}
@@ -105,7 +115,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .cc00-table td{padding:9px 6px;border-bottom:1px solid #fff4e8;text-align:center;color:#8a4a00;font-weight:600}
 .cc00-table td:first-child{text-align:left;color:var(--muted);font-weight:400;font-size:11px;padding-left:10px}
 .cc00-table tr:last-child td{border-bottom:none}
-.cc00-table tr:nth-child(even) td{background:#fff9f2}
 
 .lock-box{background:#fff4e8;border:1px solid #e8a020;border-radius:var(--rsm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .lock-box svg{width:22px;height:22px;fill:#e8a020;flex-shrink:0}
@@ -120,8 +129,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .stock-ok{color:var(--green)}
 .stock-low{color:var(--red)}
 
+/* SCANNER */
 .scanner-wrap{background:var(--navy3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;position:relative}
-.scan-video{width:100%;height:280px;object-fit:cover;display:block}
+.scan-video{width:100%;height:280px;object-fit:cover;display:block;background:#000}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .scanner-frame{width:240px;height:120px;border:2.5px solid var(--gold2);border-radius:12px;position:relative}
 .scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 2s linear infinite}
@@ -133,6 +143,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sc-br{bottom:-2px;right:-2px;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:4px}
 .scanner-hint{background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:10px;text-align:center;font-size:13px;color:var(--muted)}
 .stop-btn{background:var(--red);color:var(--white);border:none;border-radius:var(--rsm);padding:13px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px}
+.manual-row{display:flex;gap:8px;margin-bottom:12px}
+.manual-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:15px;outline:none;background:var(--white);color:var(--text)}
+.manual-btn{background:var(--navy);color:var(--gold2);border:none;border-radius:var(--rsm);padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer}
 .logout-row{display:flex;justify-content:center;padding:8px 0 20px}
 .logout-btn{background:none;border:1px solid var(--border);border-radius:var(--rsm);padding:8px 24px;font-size:13px;color:var(--muted);cursor:pointer}
 </style>
@@ -178,7 +191,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   <div class="content">
     <div class="search-box">
       <div class="search-row">
-        <input class="search-input" id="search-input" type="text" placeholder="ชื่อสินค้า หรือ 4-5 หลักท้ายบาร์โค้ด">
+        <div class="search-input-wrap">
+          <input class="search-input" id="search-input" type="text" placeholder="ชื่อสินค้า หรือ 4-5 หลักท้ายบาร์โค้ด" autocomplete="off">
+          <button class="clear-btn" id="clear-btn" onclick="clearSearch()">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
         <button class="scan-btn" id="open-scanner">
           <svg viewBox="0 0 24 24"><path d="M2 4h4v2H4v2H2V4zm16 0h4v4h-2V6h-2V4zM2 18h2v2h2v2H2v-4zm18 2h-2v2h4v-4h-2v2zM11 7h2v10h-2V7zM7 7h2v10H7V7zm10 0h2v10h-2V7z"/></svg>
           สแกน
@@ -211,6 +229,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div class="scanner-hint">วางบาร์โค้ดให้อยู่ในกรอบสีทอง — กล้องสแกนอัตโนมัติ</div>
     <button class="stop-btn" id="stop-scan">หยุดสแกน</button>
+    <div class="manual-row">
+      <input class="manual-input" id="manual-bc" type="text" inputmode="numeric" placeholder="หรือพิมพ์บาร์โค้ดที่นี่">
+      <button class="manual-btn" id="manual-search-btn">ค้นหา</button>
+    </div>
     <div class="sbar"><div class="sdot loading" id="scan-dot"></div><span id="scan-txt">กำลังเปิดกล้อง...</span></div>
   </div>
 </div>
@@ -233,6 +255,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 </div>
 
+<!-- ZXing library for reliable iPhone barcode scanning -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 <script>
 const CONFIG = {
   PROD_SHEET_ID:   '1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw',
@@ -240,22 +264,18 @@ const CONFIG = {
   PROD_TAB:        'สินค้า',
   USER_TAB:        'users',
   ROLE_RESTRICTED: 5,
-  SESSION_KEY:     'rattana_v3_session'
+  SESSION_KEY:     'rattana_v4_session'
 };
 
 const BC_COLS = ['CODE EA','CODE PA','CODE BP','CODE CS'];
 
-let allData = [];
-let currentUser = null;
-let scannerStream = null;
+let allData       = [];
+let currentUser   = null;
+let zxingReader   = null;
 let scannerActive = false;
-let lastScanned = '';
-let barcodeDetector = null;
+let lastScanned   = '';
 
-if ('BarcodeDetector' in window) {
-  try { barcodeDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] }); } catch(e){}
-}
-
+// ---------- SHEET ----------
 function gviz(id, tab) {
   return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
 }
@@ -273,6 +293,7 @@ async function fetchSheet(id, tab) {
   });
 }
 
+// ---------- UI HELPERS ----------
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -287,6 +308,7 @@ function fmtPrice(v) {
   return isNaN(n) ? v : n.toLocaleString('th-TH');
 }
 
+// ---------- SESSION ----------
 function saveSession(u) { try { localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(u)); } catch(e){} }
 function loadSession()  { try { return JSON.parse(localStorage.getItem(CONFIG.SESSION_KEY)); } catch(e){ return null; } }
 function clearSession() { try { localStorage.removeItem(CONFIG.SESSION_KEY); } catch(e){} }
@@ -298,6 +320,7 @@ function updateChips() {
   ['chip-role','dchip-role'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=r; });
 }
 
+// ---------- LOGIN ----------
 async function doLogin() {
   const username = document.getElementById('inp-user').value.trim();
   const password = document.getElementById('inp-pw').value;
@@ -306,7 +329,7 @@ async function doLogin() {
   document.getElementById('login-msg').textContent = 'กำลังตรวจสอบ...';
   document.getElementById('login-btn').disabled = true;
   try {
-    const users = await fetchSheet(CONFIG.USER_SHEET_ID, CONFIG.USER_TAB);
+    const users   = await fetchSheet(CONFIG.USER_SHEET_ID, CONFIG.USER_TAB);
     const matched = users.find(u => u['username'] === username && u['password'] === password);
     if (!matched) {
       document.getElementById('login-err').textContent = 'Username หรือ Password ไม่ถูกต้อง';
@@ -336,7 +359,7 @@ async function enterApp() {
   setStat('กำลังโหลดข้อมูลสินค้า...', 'loading');
   try {
     const rows = await fetchSheet(CONFIG.PROD_SHEET_ID, CONFIG.PROD_TAB);
-    allData = rows.filter(r => r['PRODUCT NAME'] || BC_COLS.some(k => r[k]));
+    allData    = rows.filter(r => r['PRODUCT NAME'] || BC_COLS.some(k => r[k]));
     setStat('โหลดสำเร็จ — พบ '+allData.length.toLocaleString('th-TH')+' รายการ', 'ok');
   } catch(e) {
     setStat('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet', 'err');
@@ -347,52 +370,118 @@ function doLogout() {
   clearSession(); currentUser = null; allData = [];
   document.getElementById('inp-user').value = '';
   document.getElementById('inp-pw').value   = '';
-  document.getElementById('results-area').innerHTML = '';
-  document.getElementById('search-input').value = '';
+  clearSearch();
   show('s-login');
 }
 
-// Auto-login from saved session
+// Auto-login
 (function boot() {
   const saved = loadSession();
   if (saved && saved.username && saved.role) { currentUser = saved; enterApp(); }
 })();
 
-document.getElementById('login-btn').onclick = doLogin;
+// ---------- EVENTS ----------
+document.getElementById('login-btn').onclick    = doLogin;
 document.getElementById('inp-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('inp-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('inp-pw').focus(); });
-document.getElementById('logout-btn').onclick = doLogout;
-document.getElementById('detail-back').onclick = () => show('s-main');
+document.getElementById('logout-btn').onclick   = doLogout;
+document.getElementById('detail-back').onclick  = () => show('s-main');
 document.getElementById('scanner-back').onclick = () => { stopScan(); show('s-main'); };
 document.getElementById('stop-scan').onclick    = () => { stopScan(); show('s-main'); };
 document.getElementById('open-scanner').onclick = () => { show('s-scanner'); startScan(); };
+document.getElementById('manual-search-btn').onclick = () => {
+  const v = document.getElementById('manual-bc').value.trim();
+  if (v) { stopScan(); onScanFound(v); }
+};
+document.getElementById('manual-bc').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const v = e.target.value.trim(); if(v) { stopScan(); onScanFound(v); } }
+});
+
+// ---------- SEARCH ----------
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('clear-btn').classList.remove('visible');
+  document.getElementById('results-area').innerHTML = '';
+  setStat('พร้อมค้นหา', '');
+}
 
 let searchTimer;
 document.getElementById('search-input').addEventListener('input', function() {
+  const val = this.value;
+  document.getElementById('clear-btn').classList.toggle('visible', val.length > 0);
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => doSearch(this.value), 350);
+  searchTimer = setTimeout(() => doSearch(val), 350);
 });
 
-function doSearch(q) {
-  if (!q.trim()) { document.getElementById('results-area').innerHTML = ''; return; }
-  q = q.trim().toLowerCase();
-  const found = allData.filter(r => {
-    if ((r['PRODUCT NAME']||'').toLowerCase().includes(q)) return true;
-    if ((r['SHORT NAME']||'').toLowerCase().includes(q)) return true;
-    for (const k of BC_COLS) {
-      const b = (r[k]||'').toLowerCase();
-      if (b && (b === q || b.endsWith(q) || b.includes(q))) return true;
-    }
-    return false;
-  });
-  if (found.length === 1) { showDetail(found[0]); }
-  else { renderList(found); }
+// Score function for relevance ordering
+function scoreResult(r, q) {
+  const name  = (r['PRODUCT NAME'] || '').toLowerCase();
+  const short = (r['SHORT NAME']   || '').toLowerCase();
+  const codes = BC_COLS.map(k => (r[k] || '').toLowerCase());
+
+  // Exact barcode match = highest score
+  if (codes.some(b => b === q)) return 100;
+  // Barcode ends with query
+  if (codes.some(b => b.endsWith(q))) return 80;
+  // Exact name match
+  if (name === q || short === q) return 70;
+  // Name starts with query
+  if (name.startsWith(q) || short.startsWith(q)) return 50;
+  // Name contains query
+  if (name.includes(q) || short.includes(q)) return 30;
+  // Barcode contains query
+  if (codes.some(b => b.includes(q))) return 20;
+  return 0;
 }
 
+function isExactBarcodeMatch(r, q) {
+  return BC_COLS.some(k => (r[k] || '').trim() === q.trim());
+}
+
+function doSearch(raw) {
+  if (!raw.trim()) {
+    document.getElementById('results-area').innerHTML = '';
+    setStat('พร้อมค้นหา', '');
+    return;
+  }
+  const q = raw.trim().toLowerCase();
+
+  // Check if query looks like a barcode (mostly digits)
+  const looksLikeBarcode = /^\d{4,}$/.test(raw.trim());
+
+  // Score and filter
+  const scored = allData
+    .map(r => ({ r, score: scoreResult(r, q) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (!scored.length) {
+    setStat('ไม่พบสินค้าที่ค้นหา', 'err');
+    document.getElementById('results-area').innerHTML =
+      '<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';
+    return;
+  }
+
+  // Exact barcode → go straight to detail
+  if (looksLikeBarcode && scored.length >= 1 && isExactBarcodeMatch(scored[0].r, raw.trim())) {
+    const exactMatches = scored.filter(x => isExactBarcodeMatch(x.r, raw.trim()));
+    if (exactMatches.length === 1) {
+      setStat('พบ: '+exactMatches[0].r['PRODUCT NAME'], 'ok');
+      showDetail(exactMatches[0].r);
+      return;
+    }
+  }
+
+  // Everything else → show list (name search always shows list)
+  setStat('พบ '+scored.length+' รายการ — กดเพื่อเลือกสินค้า', 'ok');
+  renderList(scored.map(x => x.r), q);
+}
+
+// ---------- LIST ----------
 const NOIMG = `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
 
 function getImg(r) {
-  const u = r['รูปสินค้า']||r['IMAGE']||r['image']||'';
+  const u = r['รูปสินค้า'] || r['IMAGE'] || r['image'] || '';
   if (!u) return null;
   const m1 = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
   if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
@@ -401,19 +490,26 @@ function getImg(r) {
   return u;
 }
 
-function renderList(results) {
+function renderList(results, q) {
   const area = document.getElementById('results-area');
-  if (!results.length) { area.innerHTML = '<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>'; return; }
+  if (!results.length) {
+    area.innerHTML = '<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';
+    return;
+  }
   let html = `<div class="result-count">พบ ${results.length} รายการ — กดเพื่อเลือกสินค้า</div>`;
-  results.slice(0,100).forEach(r => {
-    const img = getImg(r);
-    const thumb = img ? `<img src="${img}" style="width:46px;height:46px;border-radius:8px;object-fit:contain" onerror="this.style.display='none'">` : NOIMG;
-    const idx = allData.indexOf(r);
-    const cat = [r['CAT GROUP'],r['CAT BRAND']].filter(Boolean).join(' · ');
+  results.slice(0, 100).forEach(r => {
+    const img   = getImg(r);
+    const thumb = img
+      ? `<img src="${img}" style="width:46px;height:46px;border-radius:8px;object-fit:contain" onerror="this.style.display='none'">`
+      : NOIMG;
+    const idx     = allData.indexOf(r);
+    const cat     = [r['CAT GROUP'], r['CAT BRAND']].filter(Boolean).join(' · ');
+    const isExact = q && BC_COLS.some(k => (r[k]||'').toLowerCase() === q);
+    const badge   = isExact ? '<span class="exact-badge">ตรงทุกหลัก</span>' : '';
     html += `<div class="list-item" onclick="showDetail(allData[${idx}])">
       <div class="lthumb">${thumb}</div>
       <div style="flex:1;min-width:0">
-        <div class="lname">${r['PRODUCT NAME']||'—'}</div>
+        <div class="lname">${r['PRODUCT NAME']||'—'}${badge}</div>
         <div class="lsku">${r['CODE EA']?'CODE EA: '+r['CODE EA']:''}${cat?' · '+cat:''}</div>
       </div>
       <div class="lprice">${fmtPrice(r['PRICE CC03 EA'])} ฿</div>
@@ -423,24 +519,25 @@ function renderList(results) {
   area.innerHTML = html;
 }
 
+// ---------- DETAIL ----------
 function showDetail(r) {
   const canSeeCC00 = currentUser && currentUser.role >= CONFIG.ROLE_RESTRICTED;
-  const img = getImg(r);
-  const imgHtml = img
+  const img        = getImg(r);
+  const imgHtml    = img
     ? `<img src="${img}" class="result-img" onerror="this.outerHTML='<div class=result-img-ph>${NOIMG}</div>'">`
     : `<div class="result-img-ph">${NOIMG}</div>`;
 
   const cats = [r['CAT BU'],r['CAT TYPE'],r['CAT GROUP'],r['CAT BRAND'],r['CAT SIZE']].filter(Boolean);
 
   const units = [
-    {u:'EA (ชิ้น)', code:r['CODE EA'], rattana:r['RATTANA UNIT EA'], unit:r['UNIT EA'], qty:r['QTY EA']},
-    {u:'PA (แพ็ก)', code:r['CODE PA'], rattana:r['RATTANA UNIT PA'], unit:r['UNIT PA'], qty:r['QTY PA']},
-    {u:'BP (แพ็กใหญ่)', code:r['CODE BP'], rattana:r['RATTANA UNIT BP'], unit:r['UNIT BP'], qty:r['QTY BP']},
-    {u:'CS (ลัง)', code:r['CODE CS'], rattana:r['RATTANA UNIT CS'], unit:r['UNIT CS'], qty:r['QTY CS']},
-  ].filter(x => x.code||x.rattana||x.unit);
+    {u:'EA (ชิ้น)',   code:r['CODE EA'], rattana:r['RATTANA UNIT EA'], unit:r['UNIT EA'], qty:r['QTY EA']},
+    {u:'PA (แพ็ก)',   code:r['CODE PA'], rattana:r['RATTANA UNIT PA'], unit:r['UNIT PA'], qty:r['QTY PA']},
+    {u:'BP (แพ็กใหญ่)',code:r['CODE BP'], rattana:r['RATTANA UNIT BP'], unit:r['UNIT BP'], qty:r['QTY BP']},
+    {u:'CS (ลัง)',    code:r['CODE CS'], rattana:r['RATTANA UNIT CS'], unit:r['UNIT CS'], qty:r['QTY CS']},
+  ].filter(x => x.code || x.rattana || x.unit);
 
   const unitRows = units.map(x =>
-    `<tr><td>${x.u}</td><td>${x.rattana||'—'}</td><td>${x.unit||'—'}</td><td>${x.qty||'—'}</td><td class="mono" style="font-size:11px">${x.code||'—'}</td></tr>`
+    `<tr><td>${x.u}</td><td>${x.rattana||'—'}</td><td>${x.unit||'—'}</td><td>${x.qty||'—'}</td><td style="font-family:monospace;font-size:11px">${x.code||'—'}</td></tr>`
   ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">—</td></tr>';
 
   const priceRows = [
@@ -463,20 +560,20 @@ function showDetail(r) {
         <div><div class="lock-text">ราคาควบคุม (CC00)</div><div class="lock-sub">ต้องการ Role ${CONFIG.ROLE_RESTRICTED} ขึ้นไป</div></div>
       </div>`;
 
-  const stk = parseInt(r['STOCK C4'])||0;
-  const stkTxt = stk===0 ? 'หมดสต็อก' : stk<=10 ? `เหลือน้อย (${stk})` : stk.toLocaleString('th-TH')+' ชิ้น';
-  const stkCls = stk>10 ? 'stock-ok' : 'stock-low';
+  const stk    = parseInt(r['STOCK C4']) || 0;
+  const stkTxt = stk === 0 ? 'หมดสต็อก' : stk <= 10 ? `เหลือน้อย (${stk})` : stk.toLocaleString('th-TH')+' ชิ้น';
+  const stkCls = stk > 10 ? 'stock-ok' : 'stock-low';
 
-  document.getElementById('dtitle').textContent = r['PRODUCT NAME']||'รายละเอียดสินค้า';
-  document.getElementById('dsku').textContent   = r['SHORT NAME']||'';
+  document.getElementById('dtitle').textContent = r['PRODUCT NAME'] || 'รายละเอียดสินค้า';
+  document.getElementById('dsku').textContent   = r['SHORT NAME'] || '';
 
   document.getElementById('detail-content').innerHTML = `
     <div class="result-card">
       ${imgHtml}
       <div class="result-body">
         <div class="result-name">${r['PRODUCT NAME']||'—'}</div>
-        ${r['SHORT NAME']?`<div class="result-short">${r['SHORT NAME']}</div>`:''}
-        ${r['DESCRIPTION']?`<div class="result-sku">${r['DESCRIPTION']}</div>`:''}
+        ${r['SHORT NAME']   ? `<div class="result-short">${r['SHORT NAME']}</div>` : ''}
+        ${r['DESCRIPTION']  ? `<div class="result-sku">${r['DESCRIPTION']}</div>`  : ''}
         <div style="margin-bottom:8px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
 
         <div class="section-title">หน่วยและบาร์โค้ด</div>
@@ -501,104 +598,101 @@ function showDetail(r) {
         <div class="info-row"><span class="ik">Location</span><span class="iv">${r['Location']||'—'}</span></div>
         <div class="info-row"><span class="ik">Vendor</span><span class="iv">${r['VENDOR NAME']||'—'}</span></div>
         <div class="info-row"><span class="ik">Vendor Code</span><span class="iv mono">${r['VENDOR CODE']||'—'}</span></div>
-        <div class="info-row"><span class="ik">SKU Life</span><span class="iv">${r['SKU LIFE (DAYS)']?r['SKU LIFE (DAYS)']+' วัน':'—'}</span></div>
+        <div class="info-row"><span class="ik">SKU Life</span><span class="iv">${r['SKU LIFE (DAYS)'] ? r['SKU LIFE (DAYS)']+' วัน' : '—'}</span></div>
         <div class="info-row"><span class="ik">CS/Pallet</span><span class="iv">${r['CS PALLET']||'—'}</span></div>
         <div class="info-row"><span class="ik">Layers</span><span class="iv">${r['NUMBER OF LAYERS']||'—'} (${r['CS LAYER']||'—'} CS/Layer)</span></div>
-        ${r['FIRST STOCK DATE']?`<div class="info-row"><span class="ik">First Stock</span><span class="iv">${r['FIRST STOCK DATE']}</span></div>`:''}
+        ${r['FIRST STOCK DATE'] ? `<div class="info-row"><span class="ik">First Stock</span><span class="iv">${r['FIRST STOCK DATE']}</span></div>` : ''}
       </div>
     </div>`;
   show('s-detail');
 }
 
-// ---------- SCANNER ----------
+// ---------- SCANNER (ZXing — works on iPhone 12+ Safari) ----------
 function startScan() {
   document.getElementById('scan-txt').textContent = 'กำลังเปิดกล้อง...';
   document.getElementById('scan-dot').className   = 'sdot loading';
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    document.getElementById('scan-txt').textContent = 'เบราว์เซอร์ไม่รองรับ — ใช้ Safari (iOS) หรือ Chrome';
-    document.getElementById('scan-dot').className   = 'sdot err';
-    showManualInput(); return;
-  }
+  lastScanned   = '';
+  scannerActive = true;
+
   const video = document.getElementById('scan-video');
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal:'environment' }, width:{ideal:1280}, height:{ideal:720} }
-  }).then(stream => {
-    scannerStream   = stream;
-    video.srcObject = stream;
-    video.setAttribute('playsinline','');
-    video.setAttribute('webkit-playsinline','');
-    return video.play();
-  }).then(() => {
-    scannerActive = true; lastScanned = '';
-    document.getElementById('scan-txt').textContent = barcodeDetector
-      ? 'กล้องพร้อม — วางบาร์โค้ดในกรอบสีทอง'
-      : 'กล้องพร้อม — พิมพ์บาร์โค้ดด้านล่างหรือวางในกรอบ';
-    document.getElementById('scan-dot').className = 'sdot ok';
-    if (!barcodeDetector) showManualInput();
-    requestAnimationFrame(scanFrame);
-  }).catch(err => {
-    const msg = err.name==='NotAllowedError'
+
+  if (typeof ZXing === 'undefined') {
+    document.getElementById('scan-txt').textContent = 'โหลดไลบรารีไม่ได้ — ใช้ช่องพิมพ์ด้านล่าง';
+    document.getElementById('scan-dot').className   = 'sdot err';
+    return;
+  }
+
+  try {
+    const hints = new Map();
+    const formats = [
+      ZXing.BarcodeFormat.EAN_13,
+      ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.UPC_A,
+      ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.CODE_128,
+      ZXing.BarcodeFormat.CODE_39,
+    ];
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+    zxingReader = new ZXing.BrowserMultiFormatReader(hints, 500);
+
+    zxingReader.decodeFromVideoDevice(null, video, (result, err) => {
+      if (!scannerActive) return;
+      if (result) {
+        const code = result.getText();
+        if (code && code !== lastScanned) {
+          lastScanned = code;
+          onScanFound(code);
+        }
+      }
+    });
+
+    document.getElementById('scan-txt').textContent = 'กล้องพร้อม — วางบาร์โค้ดในกรอบสีทอง';
+    document.getElementById('scan-dot').className   = 'sdot ok';
+
+  } catch(e) {
+    const msg = (e.name === 'NotAllowedError')
       ? 'กรุณาอนุญาตกล้อง: Settings → Safari → Camera → Allow'
       : 'เปิดกล้องไม่ได้ — ลองพิมพ์บาร์โค้ดด้านล่าง';
     document.getElementById('scan-txt').textContent = msg;
     document.getElementById('scan-dot').className   = 'sdot err';
-    showManualInput();
-  });
-}
-
-function scanFrame() {
-  if (!scannerActive) return;
-  const video = document.getElementById('scan-video');
-  if (!barcodeDetector || video.readyState !== video.HAVE_ENOUGH_DATA) {
-    requestAnimationFrame(scanFrame); return;
   }
-  barcodeDetector.detect(video).then(barcodes => {
-    if (barcodes.length > 0) {
-      const code = barcodes[0].rawValue;
-      if (code && code !== lastScanned) { lastScanned = code; onScanFound(code); return; }
-    }
-    if (scannerActive) requestAnimationFrame(scanFrame);
-  }).catch(() => { if (scannerActive) requestAnimationFrame(scanFrame); });
-}
-
-function showManualInput() {
-  if (document.getElementById('manual-row')) return;
-  const div = document.createElement('div');
-  div.id = 'manual-row';
-  div.style = 'display:flex;gap:8px;margin-bottom:12px';
-  div.innerHTML = `
-    <input id="manual-bc" type="text" inputmode="numeric" placeholder="พิมพ์บาร์โค้ดที่นี่"
-      style="flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:15px;outline:none;background:var(--white);color:var(--text)">
-    <button onclick="var v=document.getElementById('manual-bc').value.trim();if(v)onScanFound(v);"
-      style="background:var(--navy);color:var(--gold2);border:none;border-radius:var(--rsm);padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer">ค้นหา</button>`;
-  document.getElementById('stop-scan').insertAdjacentElement('beforebegin', div);
-  document.getElementById('manual-bc').addEventListener('keydown', e => {
-    if (e.key==='Enter') { const v=e.target.value.trim(); if(v) onScanFound(v); }
-  });
 }
 
 function stopScan() {
   scannerActive = false;
-  if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
+  if (zxingReader) {
+    try { zxingReader.reset(); } catch(e){}
+    zxingReader = null;
+  }
   const video = document.getElementById('scan-video');
-  if (video) video.srcObject = null;
-  const manual = document.getElementById('manual-row');
-  if (manual) manual.remove();
+  if (video && video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+  }
+  document.getElementById('manual-bc').value = '';
 }
 
 function onScanFound(code) {
-  stopScan(); show('s-main');
+  stopScan();
+  show('s-main');
   document.getElementById('search-input').value = code;
+  document.getElementById('clear-btn').classList.add('visible');
   setStat('สแกนได้: '+code+' — กำลังค้นหา...', 'loading');
-  const found = allData.filter(r => BC_COLS.some(k => r[k] && r[k].trim()===code.trim()));
-  if (found.length===1) {
-    setStat('พบ: '+found[0]['PRODUCT NAME'], 'ok'); showDetail(found[0]);
-  } else if (found.length>1) {
-    setStat('พบ '+found.length+' รายการ — กรุณาเลือก', 'ok'); renderList(found);
+
+  const exactMatches = allData.filter(r => BC_COLS.some(k => r[k] && r[k].trim() === code.trim()));
+
+  if (exactMatches.length === 1) {
+    setStat('พบ: '+exactMatches[0]['PRODUCT NAME'], 'ok');
+    showDetail(exactMatches[0]);
+  } else if (exactMatches.length > 1) {
+    setStat('พบ '+exactMatches.length+' รายการ — กรุณาเลือก', 'ok');
+    renderList(exactMatches, code.toLowerCase());
   } else {
     setStat('ไม่พบบาร์โค้ด '+code+' ในระบบ', 'err');
     document.getElementById('results-area').innerHTML =
-      `<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด ${code}</div>`;
+      `<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด ${code} ในระบบ</div>`;
   }
 }
 </script>
