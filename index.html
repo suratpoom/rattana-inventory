@@ -143,7 +143,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .iv{font-size:13px;font-weight:500;color:var(--navy);text-align:right;word-break:break-all}
 .iv.mono{font-family:monospace;font-size:12px}
 
-/* ── SCANNER V2: ปรับสำหรับ Android ── */
+/* ── Fuzzy search / คุณหมายถึง? ── */
+.fuzzy-box{background:#fffbe8;border:1px solid #f0d060;border-radius:var(--rsm);padding:12px 14px;margin-bottom:10px}
+.fuzzy-label{font-size:12px;color:#8a6a00;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.fuzzy-label svg{width:14px;height:14px;fill:#c09000}
+.fuzzy-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fuzzy-chip{background:var(--white);border:1.5px solid #e0c040;border-radius:20px;padding:5px 13px;font-size:13px;color:var(--navy);cursor:pointer;font-weight:500;transition:background .15s}
+.fuzzy-chip:active{background:#fff8d0}
+
 .scanner-wrap{background:var(--navy3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;position:relative}
 /* reader div ถูก inject โดย html5-qrcode */
 #html5-qr-reader{width:100%;border-radius:0!important;border:none!important}
@@ -189,7 +196,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 <div id="s-login" class="screen active">
   <div class="login-wrap">
     <img class="login-logo-img"
-      src="https://lh3.googleusercontent.com/d/LOGO_FILE_ID"
+      src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8"
       onerror="this.style.display='none'"
       alt="Rattana Mart">
     <div class="login-card">
@@ -208,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 <div id="s-main" class="screen">
   <div class="topbar">
     <div class="topbar-logo">
-      <img src="https://lh3.googleusercontent.com/d/LOGO_FILE_ID" onerror="this.style.display='none'" alt="">
+      <img src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8" onerror="this.style.display='none'" alt="">
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
@@ -452,8 +459,11 @@ function doSearch(raw){
   const looksLikeBarcode=/^\d{4,}$/.test(raw.trim());
   const scored=allData.map(r=>({r,score:scoreResult(r,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
   if(!scored.length){
-    setStat('ไม่พบสินค้าที่ค้นหา','err');
-    document.getElementById('results-area').innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';
+    setStat('ไม่พบตรงๆ — กำลังค้นหาที่ใกล้เคียง...','loading');
+    setTimeout(()=>{
+      renderFuzzy(raw.trim());
+      setStat('ไม่พบ "'+raw.trim()+'" — แสดงสินค้าที่ใกล้เคียง','err');
+    },80);
     return;
   }
   if(looksLikeBarcode&&isExactBarcodeMatch(scored[0].r,raw.trim())){
@@ -477,17 +487,13 @@ function extractDriveFileId(u){
   return null;
 }
 
-function getImg(r,size='s220'){
-  /* V2: ดู column IMAGE/image ก่อน ถ้ามี File ID ใช้ thumbnail API
-     size: s46 (thumbnail), s220 (detail), s600 (fullsize) */
+function getImg(r){
+  /* V2: lh3.googleusercontent.com/d/FILE_ID — ทำงานได้กับไฟล์ที่ share "Anyone with link"
+     ไม่ต้อง CORS, รองรับทุกประเภทภาพ */
   const raw=r['IMAGE']||r['image']||r['Image']||'';
   if(!raw)return null;
   const fileId=extractDriveFileId(raw);
-  if(fileId){
-    /* ใช้ thumbnail endpoint — ไม่ต้อง CORS, โหลดเร็ว */
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
-  }
-  /* fallback: URL ตรง (เช่น lh3 URL) */
+  if(fileId)return `https://lh3.googleusercontent.com/d/${fileId}`;
   return raw.startsWith('http')?raw:null;
 }
 
@@ -497,7 +503,7 @@ function renderList(results,q){
   if(!results.length){area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';return;}
   let html=`<div class="result-count">พบ ${results.length} รายการ — กดเพื่อเลือกสินค้า</div>`;
   results.slice(0,100).forEach(r=>{
-    const imgUrl=getImg(r,'s100');
+    const imgUrl=getImg(r);
     const thumb=imgUrl
       ?`<img src="${imgUrl}" style="width:56px;height:56px;border-radius:10px;object-fit:contain" loading="lazy" onerror="this.parentElement.innerHTML='${NOIMG.replace(/'/g,"&#39;")}'">` 
       :NOIMG;
@@ -529,7 +535,7 @@ function renderList(results,q){
 /* ══ DETAIL ══ */
 function showDetail(r){
   const canSeeCC00=currentUser&&currentUser.role>=CONFIG.ROLE_RESTRICTED;
-  const imgUrl=getImg(r,'s400');
+  const imgUrl=getImg(r);
   const imgHtml=imgUrl
     ?`<div class="result-img-wrap"><img src="${imgUrl}" class="result-img" loading="eager" onerror="this.parentElement.outerHTML='<div class=result-img-ph>${NOIMG.replace(/'/g,"&#39;")}</div>'"></div>`
     :`<div class="result-img-ph">${NOIMG}</div>`;
@@ -751,12 +757,96 @@ function onScanFound(code){
   else{setStat('ไม่พบบาร์โค้ด '+code+' ในระบบ','err');document.getElementById('results-area').innerHTML=`<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด ${code} ในระบบ</div>`;}
 }
 
-/* ══ EVENT BINDINGS ══ */
+/* ══ FUZZY SEARCH — Thai-aware ══
+   รองรับการพิมพ์ผิด เช่น น้าดิ่ม → น้ำดื่ม
+   1. normalize สระสั้น/ยาว และวรรณยุกต์
+   2. Levenshtein distance
+   3. แสดง "คุณหมายถึง?" chips
+   ══════════════════════════════════════ */
+function normalizeThai(s){
+  return s
+    .replace(/ำ/g,'า')           // น้ำ → น้า
+    .replace(/[ึื]/g,'ิ')        // สระ อึ/อื → อิ
+    .replace(/[ู]/g,'ุ')         // อู → อุ
+    .replace(/[ี]/g,'ิ')         // อี → อิ
+    .replace(/[็่้๊๋]/g,'')      // ตัดวรรณยุกต์/ไม้ไต่คู้
+    .replace(/[ๆฯ]/g,'')
+    .toLowerCase()
+    .trim();
+}
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n;if(!n)return m;
+  const dp=[];
+  for(let i=0;i<=m;i++){dp[i]=[i];for(let j=1;j<=n;j++)dp[i][j]=0;}
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)
+    for(let j=1;j<=n;j++)
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+function fuzzySearch(q){
+  /* หา candidates ที่ใกล้เคียงที่สุด */
+  const nq=normalizeThai(q);
+  const maxDist=Math.max(2,Math.floor(nq.length*0.45));
+  const scored=[];
+  allData.forEach(r=>{
+    const name=r['PRODUCT NAME']||'';
+    const short=r['SHORT NAME']||'';
+    const nn=normalizeThai(name);
+    const ns=normalizeThai(short);
+    /* ถ้า normalize แล้วมี substring ตรง — ถือว่าใกล้มาก */
+    if(nn.includes(nq)||ns.includes(nq)){scored.push({r,dist:0,name});return;}
+    /* ใช้ Levenshtein กับ window ขนาด nq.length บน string ชื่อสินค้า */
+    let minDist=999;
+    for(let i=0;i<=nn.length-nq.length+2;i++){
+      const window=nn.substr(Math.max(0,i),nq.length+2);
+      const d=levenshtein(nq,window);
+      if(d<minDist)minDist=d;
+    }
+    if(minDist<=maxDist)scored.push({r,dist:minDist,name});
+  });
+  scored.sort((a,b)=>a.dist-b.dist);
+  return scored.slice(0,8);
+}
+function renderFuzzy(q){
+  const area=document.getElementById('results-area');
+  const candidates=fuzzySearch(q);
+  if(!candidates.length){
+    area.innerHTML=`<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้า "${q}" ในระบบ</div>`;
+    return;
+  }
+  /* unique name chips */
+  const seen=new Set();
+  const chips=candidates.filter(c=>{
+    const k=(c.r['PRODUCT NAME']||'').substr(0,30);
+    if(seen.has(k))return false;seen.add(k);return true;
+  });
+  const chipsHtml=chips.map(c=>{
+    const idx=allData.indexOf(c.r);
+    return `<span class="fuzzy-chip" onclick="pickFuzzy(allData[${idx}],'${(c.r['PRODUCT NAME']||'').replace(/'/g,"&#39;")}')">${c.r['PRODUCT NAME']||'—'}</span>`;
+  }).join('');
+  area.innerHTML=`
+    <div class="fuzzy-box">
+      <div class="fuzzy-label">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        ไม่พบ "${q}" — คุณหมายถึง?
+      </div>
+      <div class="fuzzy-chips">${chipsHtml}</div>
+    </div>`;
+}
+function pickFuzzy(r,name){
+  /* เมื่อกด chip → ใส่ชื่อสินค้าใน search แล้วเปิด detail */
+  document.getElementById('search-input').value=name;
+  document.getElementById('clear-btn').classList.add('visible');
+  showDetail(r);
+}
+
 document.getElementById('login-btn').onclick=doLogin;
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
 document.getElementById('logout-btn').onclick=doLogout;
-document.getElementById('detail-back').onclick=()=>show('s-main');
+document.getElementById('detail-back').onclick=()=>{clearSearch();show('s-main');};
 
 /* กดกลับจาก scanner → clear search V2 FIX #4 */
 document.getElementById('scanner-back').onclick=async()=>{
