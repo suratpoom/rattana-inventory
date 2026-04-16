@@ -185,8 +185,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .scan-ready{background:#f0fff6;border-color:#a0d8b0;color:var(--green)}
 .scan-err-box{background:#fff0f0;border-color:#f0a0a0;color:var(--red)}
 
-.logout-row{display:flex;justify-content:center;padding:8px 0 80px}
-.logout-btn{background:none;border:1px solid var(--border);border-radius:var(--rsm);padding:8px 24px;font-size:13px;color:var(--muted);cursor:pointer}
+/* ── ระบบเบิก-สั่ง bottom sheet ── */
+.req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:flex-end}
+.req-overlay.open{display:flex}
+.req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.req-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;display:block}
+.req-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.req-product{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.4}
+.req-type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.req-type-btn{border:2px solid var(--border);border-radius:var(--rsm);padding:14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s;text-align:center}
+.req-type-btn.active.beik{border-color:#e8a020;background:#fff4e8;color:#8a4a00}
+.req-type-btn.active.sang{border-color:var(--navy);background:var(--navy);color:var(--gold2)}
+.req-qty-row{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.req-qty-label{font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0}
+.req-qty-minus,.req-qty-plus{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--white);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--navy);flex-shrink:0}
+.req-qty-minus:active,.req-qty-plus:active{background:var(--light)}
+.req-qty-input{flex:1;border:2px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:22px;font-weight:700;text-align:center;color:var(--navy);outline:none}
+.req-qty-input:focus{border-color:var(--navy2)}
+.req-unit{font-size:13px;color:var(--muted);flex-shrink:0}
+.req-submit{width:100%;padding:15px;border:none;border-radius:var(--rsm);font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
+.req-submit:disabled{opacity:.4;cursor:not-allowed}
+.req-cancel{width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--rsm);font-size:14px;color:var(--muted);background:none;cursor:pointer}
+.req-msg{font-size:13px;text-align:center;min-height:20px;margin-bottom:8px;font-weight:500}
+/* ปุ่มใน detail */
+.req-action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 8px}
+.req-action-btn{border:none;border-radius:var(--rsm);padding:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.req-action-btn svg{width:18px;height:18px}
+.btn-beik{background:#fff4e8;color:#8a4a00;border:2px solid #e8a020}
+.btn-sang{background:var(--navy);color:var(--gold2)}
+.btn-beik:active{background:#ffecd0}
+.btn-sang:active{background:var(--navy2)}
+
 </style>
 </head>
 <body>
@@ -230,7 +260,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <div class="search-box">
       <div class="search-row">
         <div class="search-input-wrap">
-          <input class="search-input" id="search-input" type="search" inputmode="search"
+          <input class="search-input" id="search-input" type="text" inputmode="search"
             placeholder="ค้นหาชื่อ, บาร์โค้ด, แบรนด์..." autocomplete="off">
           <button class="clear-btn" id="clear-btn">
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -318,6 +348,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 </div><!-- #app -->
 
+<!-- ── MODAL เบิก-สั่ง ── -->
+<div class="req-overlay" id="req-overlay">
+  <div class="req-sheet">
+    <span class="req-handle"></span>
+    <div class="req-title" id="req-title">เบิกสินค้า</div>
+    <div class="req-product" id="req-product"></div>
+    <div class="req-type-row">
+      <button class="req-type-btn active beik" id="req-type-beik" onclick="setReqType('เบิก')">📦 เบิก<br><span style="font-size:11px;font-weight:400">ของขาดชั้นวาง</span></button>
+      <button class="req-type-btn sang" id="req-type-sang" onclick="setReqType('สั่ง')">🛒 สั่ง<br><span style="font-size:11px;font-weight:400">สั่งซื้อเพิ่ม</span></button>
+    </div>
+    <div class="req-qty-row">
+      <span class="req-qty-label">จำนวน</span>
+      <button class="req-qty-minus" onclick="adjQty(-1)">−</button>
+      <input class="req-qty-input" id="req-qty" type="number" min="1" max="9999" value="1" inputmode="numeric">
+      <button class="req-qty-plus" onclick="adjQty(1)">+</button>
+      <span class="req-unit">ลัง (CS)</span>
+    </div>
+    <div class="req-msg" id="req-msg"></div>
+    <button class="req-submit" id="req-submit" onclick="submitRequest()">ส่งคำขอ</button>
+    <button class="req-cancel" onclick="closeReqModal()">ยกเลิก</button>
+  </div>
+</div>
+
 <!-- html5-qrcode: ดีกว่า ZXing สำหรับ Android Chrome (ใช้ BarcodeDetector native API) -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
@@ -330,12 +383,28 @@ const CONFIG = {
   USER_SHEET_ID:   '1sOqszajMR4KS5tWxfElnV-80Y9DsGJo_vBPwQopkgX4',
   PROD_TAB:        'สินค้า',
   USER_TAB:        'users',
+  REQUEST_TAB:     'เบิก-สั่ง',
   ROLE_RESTRICTED: 5,
   SESSION_KEY:     'rattana_v8_session',
-  /* V2: ใส่ Google Drive Folder ID เมื่อได้รับ
-     รูปสินค้าจะถูก resolve จาก column 'IMAGE' ใน Sheet
-     รองรับ: File ID, sharing link, lh3 URL */
   IMG_FOLDER_ID:   '17WrWJ9eU1-UcxBJ1s52I1kzizHndDWJY',
+  /* ── ระบบเบิก-สั่ง ──
+     วิธีตั้งค่า:
+     1. เปิด Google Sheet สินค้า → Extensions → Apps Script
+     2. วางโค้ดนี้แล้ว Deploy เป็น Web App (Execute as: Me, Who has access: Anyone)
+     3. Copy URL ที่ได้มาใส่ด้านล่าง
+
+     --- Apps Script code ---
+     function doPost(e){
+       var data=JSON.parse(e.postData.contents);
+       var ss=SpreadsheetApp.openById('1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw');
+       var sh=ss.getSheetByName('เบิก-สั่ง')||ss.insertSheet('เบิก-สั่ง');
+       if(sh.getLastRow()===0)sh.appendRow(['วันที่','เวลา','ชื่อสินค้า','CODE EA','จำนวน (CS)','ประเภท','ผู้แจ้ง']);
+       sh.appendRow([data.date,data.time,data.name,data.codeEA,data.qty,data.type,data.user]);
+       return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+     }
+     function doGet(e){return ContentService.createTextOutput('ok');}
+     ------------------------ */
+  APPS_SCRIPT_URL: '',  /* ← ใส่ URL Apps Script ที่ Deploy แล้วที่นี่ */
 };
 
 const BC_COLS = ['CODE EA','CODE PA','CODE BP','CODE CS'];
@@ -346,7 +415,7 @@ const SEARCH_COLS = [
   'VENDOR CODE','VENDOR NAME'
 ];
 
-let allData=[], currentUser=null, html5QrScanner=null, scannerActive=false, lastScanned='', torchOn=false, torchTrack=null;
+let allData=[], currentUser=null, html5QrScanner=null, scannerActive=false, lastScanned='', torchOn=false, torchTrack=null, _curProd=null, _reqType='เบิก', _imgTapCount=0, _imgTapTimer=null;
 
 /* ══ UTILS ══ */
 function gviz(id,tab){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;}
@@ -455,23 +524,54 @@ function isExactBarcodeMatch(r,q){return BC_COLS.some(k=>(r[k]||'').trim()===q.t
 
 function doSearch(raw){
   if(!raw.trim()){clearSearch();return;}
-  const q=raw.trim().toLowerCase();
-  const looksLikeBarcode=/^\d{4,}$/.test(raw.trim());
-  const scored=allData.map(r=>({r,score:scoreResult(r,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  const rawTrimmed=raw.trim();
+  const tokens=rawTrimmed.toLowerCase().split(/\s+/).filter(Boolean);
+  const looksLikeBarcode=/^\d{4,}$/.test(rawTrimmed)&&tokens.length===1;
+
+  let scored;
+  if(tokens.length>1){
+    /* Multi-token: ทุก token ต้องพบในสินค้า เช่น "โอเล โลชั่น" */
+    scored=allData.map(r=>{
+      const name=(r['PRODUCT NAME']||'').toLowerCase();
+      const short=(r['SHORT NAME']||'').toLowerCase();
+      const allText=SEARCH_COLS.map(k=>(r[k]||'').toLowerCase()).join(' ');
+      const allMatch=tokens.every(t=>name.includes(t)||short.includes(t)||allText.includes(t));
+      if(!allMatch)return{r,score:0};
+      /* คำนวณ score: token ที่อยู่ในชื่อหลัก = คะแนนสูงกว่า */
+      const score=tokens.reduce((acc,t)=>{
+        if(name.startsWith(t)||short.startsWith(t))return acc+40;
+        if(name.includes(t)||short.includes(t))return acc+20;
+        return acc+5;
+      },0);
+      return{r,score};
+    }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  } else {
+    const q=tokens[0];
+    scored=allData.map(r=>({r,score:scoreResult(r,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+    if(!scored.length){
+      setStat('ไม่พบตรงๆ — กำลังค้นหาที่ใกล้เคียง...','loading');
+      setTimeout(()=>{
+        renderFuzzy(rawTrimmed);
+        setStat('ไม่พบ "'+rawTrimmed+'" — แสดงสินค้าที่ใกล้เคียง','err');
+      },80);
+      return;
+    }
+    if(looksLikeBarcode&&isExactBarcodeMatch(scored[0].r,rawTrimmed)){
+      const exact=scored.filter(x=>isExactBarcodeMatch(x.r,rawTrimmed));
+      if(exact.length===1){setStat('พบ: '+exact[0].r['PRODUCT NAME'],'ok');showDetail(exact[0].r);return;}
+    }
+  }
+
   if(!scored.length){
     setStat('ไม่พบตรงๆ — กำลังค้นหาที่ใกล้เคียง...','loading');
     setTimeout(()=>{
-      renderFuzzy(raw.trim());
-      setStat('ไม่พบ "'+raw.trim()+'" — แสดงสินค้าที่ใกล้เคียง','err');
+      renderFuzzy(rawTrimmed);
+      setStat('ไม่พบ "'+rawTrimmed+'" — แสดงสินค้าที่ใกล้เคียง','err');
     },80);
     return;
   }
-  if(looksLikeBarcode&&isExactBarcodeMatch(scored[0].r,raw.trim())){
-    const exact=scored.filter(x=>isExactBarcodeMatch(x.r,raw.trim()));
-    if(exact.length===1){setStat('พบ: '+exact[0].r['PRODUCT NAME'],'ok');showDetail(exact[0].r);return;}
-  }
   setStat('พบ '+scored.length+' รายการ — กดเพื่อเลือกสินค้า','ok');
-  renderList(scored.map(x=>x.r),q);
+  renderList(scored.map(x=>x.r),tokens[0]);
 }
 
 /* ══ IMAGE — V2: รองรับ Google Drive thumbnail ══ */
@@ -479,22 +579,35 @@ const NOIMG=`<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-
 
 function extractDriveFileId(u){
   if(!u)return null;
+  /* ล้าง whitespace และ quote ที่อาจมาจาก VLOOKUP */
+  u=u.trim().replace(/^["']+|["']+$/g,'').trim();
+  /* กรอง error ของ VLOOKUP */
+  if(!u||u==='#N/A'||u==='#REF!'||u==='#VALUE!'||u.startsWith('#'))return null;
+  /* เป็น File ID ตรงๆ (25-60 chars, ไม่มี slash) */
   if(/^[a-zA-Z0-9_-]{25,60}$/.test(u))return u;
   let m;
-  if((m=u.match(/\/d\/([a-zA-Z0-9_-]+)/)))return m[1];
-  if((m=u.match(/id=([a-zA-Z0-9_-]+)/)))return m[1];
-  if((m=u.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/)))return m[1];
+  if((m=u.match(/\/d\/([a-zA-Z0-9_-]{25,60})/)))return m[1];
+  if((m=u.match(/[?&]id=([a-zA-Z0-9_-]{25,60})/)))return m[1];
+  if((m=u.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]{25,60})/)))return m[1];
+  /* thumbnail URL */
+  if((m=u.match(/thumbnail\?id=([a-zA-Z0-9_-]{25,60})/)))return m[1];
   return null;
 }
 
 function getImg(r){
-  /* V2: lh3.googleusercontent.com/d/FILE_ID — ทำงานได้กับไฟล์ที่ share "Anyone with link"
-     ไม่ต้อง CORS, รองรับทุกประเภทภาพ */
-  const raw=r['IMAGE']||r['image']||r['Image']||'';
-  if(!raw)return null;
+  const raw=(r['IMAGE']||r['image']||r['Image']||'').trim();
+  if(!raw||raw==='#N/A'||raw.startsWith('#'))return null;
   const fileId=extractDriveFileId(raw);
   if(fileId)return `https://lh3.googleusercontent.com/d/${fileId}`;
-  return raw.startsWith('http')?raw:null;
+  if(raw.startsWith('http'))return raw;
+  return null;
+}
+
+/* debug: แสดงค่า IMAGE column ที่ได้จริงใน detail — กด 3 ครั้งที่รูปเพื่อดู */
+function debugImg(r){
+  const raw=r['IMAGE']||r['image']||r['Image']||'(ไม่มีค่า)';
+  const fid=extractDriveFileId(raw);
+  alert('IMAGE column: '+raw+'\nFile ID: '+(fid||'ดึงไม่ได้')+'\nURL: '+(fid?'https://lh3.googleusercontent.com/d/'+fid:'—'));
 }
 
 /* ══ RENDER LIST ══ */
@@ -537,8 +650,8 @@ function showDetail(r){
   const canSeeCC00=currentUser&&currentUser.role>=CONFIG.ROLE_RESTRICTED;
   const imgUrl=getImg(r);
   const imgHtml=imgUrl
-    ?`<div class="result-img-wrap"><img src="${imgUrl}" class="result-img" loading="eager" onerror="this.parentElement.outerHTML='<div class=result-img-ph>${NOIMG.replace(/'/g,"&#39;")}</div>'"></div>`
-    :`<div class="result-img-ph">${NOIMG}</div>`;
+    ?`<div class="result-img-wrap" onclick="_tapImg(this,_curProd)" style="cursor:pointer"><img src="${imgUrl}" class="result-img" loading="eager" onerror="this.parentElement.outerHTML='<div class=result-img-ph>${NOIMG.replace(/'/g,"&#39;")}</div>'"></div>`
+    :`<div class="result-img-ph" onclick="debugImg(_curProd)" style="cursor:pointer">${NOIMG}</div>`;
   const cats=[r['CAT BU'],r['CAT TYPE'],r['CAT GROUP'],r['CAT BRAND'],r['CAT SIZE']].filter(Boolean);
   const units=[
     {u:'EA (ชิ้น)',code:r['CODE EA'],rattana:r['RATTANA UNIT EA'],unit:r['UNIT EA'],qty:r['QTY EA']},
@@ -560,6 +673,7 @@ function showDetail(r){
 
   document.getElementById('dtitle').textContent=r['PRODUCT NAME']||'รายละเอียดสินค้า';
   document.getElementById('dsku').textContent=r['SHORT NAME']||'';
+  _curProd=r; /* เก็บ reference ไว้ใช้กับ modal และ debug */
   document.getElementById('detail-content').innerHTML=`
     <div class="result-card">
       ${imgHtml}
@@ -591,6 +705,18 @@ function showDetail(r){
           <tr><th>หน่วย</th><th>ชื่อรัตนา</th><th>Unit</th><th>Qty</th><th>Code</th></tr>
           ${unitRows}
         </table>
+        <div class="section-title">แจ้งเบิก / สั่งสินค้า</div>
+        <div class="req-action-row">
+          <button class="req-action-btn btn-beik" onclick="openReqModal('เบิก')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34C18 2.54 15.88.42 13.34.42c-1.36 0-2.6.56-3.5 1.46L9 2.74 8.16 1.88C7.26.98 6.02.42 4.66.42 2.12.42 0 2.54 0 5.06c0 .46.11.9.18 1.34H0v2h20V6zm-2-1.34C18 6.07 16.07 8 13.66 8c-.87 0-1.67-.33-2.28-.85L9 4.88l-2.38 2.27C6.01 7.67 5.21 8 4.34 8 1.93 8 0 6.07 0 4.66 0 3.24 1.07 2 2.66 2S5.1 2.76 5.77 3.44L9 6.59l3.23-3.15C12.9 2.76 13.81 2 15.34 2c1.59 0 2.66 1.07 2.66 2.66zM0 8v2h20V8H0zm0 4v8h20v-8H0z"/></svg>
+            เบิกสินค้า
+          </button>
+          <button class="req-action-btn btn-sang" onclick="openReqModal('สั่ง')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H18c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0022.46 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            สั่งสินค้า
+          </button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:4px">จำนวนเป็นลัง (CS) เท่านั้น</div>
       </div>
     </div>`;
   show('s-detail');
@@ -842,7 +968,104 @@ function pickFuzzy(r,name){
   showDetail(r);
 }
 
-document.getElementById('login-btn').onclick=doLogin;
+/* ══ IMAGE DEBUG TAP (กด 3 ครั้งที่รูปเพื่อดู debug) ══ */
+function _tapImg(el,r){
+  _imgTapCount++;
+  clearTimeout(_imgTapTimer);
+  _imgTapTimer=setTimeout(()=>{_imgTapCount=0;},600);
+  if(_imgTapCount>=3){_imgTapCount=0;debugImg(r||_curProd);}
+}
+
+/* ══════════════════════════════════════════════════
+   ระบบเบิก-สั่ง — บันทึกลง Google Sheet tab เบิก-สั่ง
+   ══════════════════════════════════════════════════ */
+function openReqModal(type){
+  _reqType=type;
+  const r=_curProd;
+  document.getElementById('req-title').textContent=(type==='เบิก'?'📦 เบิกสินค้า':'🛒 สั่งสินค้า');
+  document.getElementById('req-product').textContent=(r?r['PRODUCT NAME']:'')+(r&&r['CODE EA']?' | CODE EA: '+r['CODE EA']:'');
+  document.getElementById('req-qty').value='1';
+  document.getElementById('req-msg').textContent='';
+  document.getElementById('req-msg').style.color='';
+  document.getElementById('req-submit').disabled=false;
+  document.getElementById('req-submit').textContent='ส่งคำขอ';
+  document.getElementById('req-submit').style.background=type==='เบิก'?'#e8a020':'var(--navy)';
+  document.getElementById('req-submit').style.color=type==='เบิก'?'#fff':'var(--gold2)';
+  /* set active type buttons */
+  setReqType(type);
+  document.getElementById('req-overlay').classList.add('open');
+}
+function closeReqModal(){
+  document.getElementById('req-overlay').classList.remove('open');
+}
+function setReqType(type){
+  _reqType=type;
+  document.getElementById('req-type-beik').className='req-type-btn'+(type==='เบิก'?' active beik':'');
+  document.getElementById('req-type-sang').className='req-type-btn'+(type==='สั่ง'?' active sang':'');
+  document.getElementById('req-submit').style.background=type==='เบิก'?'#e8a020':'var(--navy)';
+  document.getElementById('req-submit').style.color=type==='เบิก'?'#fff':'var(--gold2)';
+  document.getElementById('req-title').textContent=(type==='เบิก'?'📦 เบิกสินค้า':'🛒 สั่งสินค้า');
+}
+function adjQty(d){
+  const el=document.getElementById('req-qty');
+  const v=Math.max(1,Math.min(9999,(parseInt(el.value)||0)+d));
+  el.value=v;
+}
+
+async function submitRequest(){
+  const qty=parseInt(document.getElementById('req-qty').value)||0;
+  if(qty<1){
+    document.getElementById('req-msg').textContent='กรุณาระบุจำนวนอย่างน้อย 1 ลัง';
+    document.getElementById('req-msg').style.color='var(--red)';return;
+  }
+  if(!CONFIG.APPS_SCRIPT_URL){
+    document.getElementById('req-msg').textContent='⚠️ ยังไม่ได้ตั้งค่า APPS_SCRIPT_URL — ดูคำแนะนำใน CONFIG';
+    document.getElementById('req-msg').style.color='var(--red)';return;
+  }
+
+  const r=_curProd;
+  const now=new Date();
+  const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const payload={
+    date,time,
+    name:r?r['PRODUCT NAME']:'',
+    codeEA:r?r['CODE EA']:'',
+    qty,
+    type:_reqType,
+    user:currentUser?currentUser.name:''
+  };
+
+  document.getElementById('req-submit').disabled=true;
+  document.getElementById('req-submit').textContent='กำลังส่ง...';
+  document.getElementById('req-msg').textContent='';
+
+  try{
+    await fetch(CONFIG.APPS_SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors', /* Apps Script ต้องใช้ no-cors */
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    /* no-cors ไม่มี response body — ถือว่าสำเร็จ */
+    document.getElementById('req-msg').textContent='✅ ส่งคำขอสำเร็จ!';
+    document.getElementById('req-msg').style.color='var(--green)';
+    document.getElementById('req-submit').textContent='ส่งแล้ว ✓';
+    setTimeout(()=>closeReqModal(),1500);
+  }catch(e){
+    document.getElementById('req-msg').textContent='❌ ส่งไม่ได้ — ตรวจสอบ URL หรืออินเทอร์เน็ต';
+    document.getElementById('req-msg').style.color='var(--red)';
+    document.getElementById('req-submit').disabled=false;
+    document.getElementById('req-submit').textContent='ลองอีกครั้ง';
+  }
+}
+
+/* ปิด modal เมื่อกดนอก sheet */
+document.getElementById('req-overlay').addEventListener('click',function(e){
+  if(e.target===this)closeReqModal();
+});
+
+
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
 document.getElementById('logout-btn').onclick=doLogout;
