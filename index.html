@@ -227,17 +227,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 <!-- ── LOGIN ── -->
 <div id="s-login" class="screen active">
-  <div class="login-wrap">
+  <div class="login-wrap" style="overflow-y:auto;-webkit-overflow-scrolling:touch">
     <img class="login-logo-img"
       src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8"
       onerror="this.style.display='none'"
       alt="Rattana Mart">
     <div class="login-card">
       <label class="field-label">Username</label>
-      <input class="field-input" id="inp-user" type="text" autocomplete="username" autocapitalize="none" placeholder="ชื่อผู้ใช้">
+      <input class="field-input" id="inp-user" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="ชื่อผู้ใช้">
       <label class="field-label">Password</label>
       <input class="field-input" id="inp-pw" type="password" autocomplete="current-password" placeholder="รหัสผ่าน">
-      <button class="login-btn" id="login-btn">เข้าสู่ระบบ</button>
+      <button class="login-btn" id="login-btn" type="button">เข้าสู่ระบบ</button>
       <div class="login-err" id="login-err"></div>
       <div class="login-msg" id="login-msg"></div>
     </div>
@@ -662,8 +662,8 @@ function showDetail(r){
   const canSeeCC00=currentUser&&currentUser.role>=CONFIG.ROLE_RESTRICTED;
   const imgUrl=getImg(r);
   const imgHtml=imgUrl
-    ?`<div class="result-img-wrap" onclick="_tapImg(this,_curProd)" style="cursor:pointer"><img src="${imgUrl}" class="result-img" loading="eager" onerror="this.parentElement.outerHTML='<div class=result-img-ph>${NOIMG.replace(/'/g,"&#39;")}</div>'"></div>`
-    :`<div class="result-img-ph" onclick="debugImg(_curProd)" style="cursor:pointer">${NOIMG}</div>`;
+    ?`<div class="result-img-wrap" onclick="_tapImg(this,_curProd)" style="cursor:pointer"><img src="${imgUrl}" class="result-img" loading="eager" onerror="imgLoadErr(this)"></div>`
+    :`<div class="result-img-ph">${NOIMG}</div>`;
   const cats=[r['CAT BU'],r['CAT TYPE'],r['CAT GROUP'],r['CAT BRAND'],r['CAT SIZE']].filter(Boolean);
   const units=[
     {u:'EA (ชิ้น)',code:r['CODE EA'],rattana:r['RATTANA UNIT EA'],unit:r['UNIT EA'],qty:r['QTY EA']},
@@ -698,11 +698,11 @@ function showDetail(r){
             <div style="margin-top:6px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
           </div>
           <div class="req-mini-wrap">
-            <button class="req-mini-btn btn-beik" onclick="openReqModal('เบิก')">
+            <button class="req-mini-btn btn-beik" data-req="เบิก">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
               📦 เบิก
             </button>
-            <button class="req-mini-btn btn-sang" onclick="openReqModal('สั่ง')">
+            <button class="req-mini-btn btn-sang" data-req="สั่ง">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H18c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0022.46 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
               🛒 สั่ง
             </button>
@@ -982,7 +982,12 @@ function pickFuzzy(r,name){
   showDetail(r);
 }
 
-/* ══ IMAGE DEBUG TAP (กด 3 ครั้งที่รูปเพื่อดู debug) ══ */
+/* ── image error handler — แยกออกมาเพื่อป้องกัน quote conflict ใน onerror attribute ── */
+function imgLoadErr(img){
+  const wrap=img.parentElement;
+  if(wrap){wrap.outerHTML='<div class="result-img-ph">'+NOIMG+'</div>';}
+}
+window.imgLoadErr=imgLoadErr;
 function _tapImg(el,r){
   _imgTapCount++;
   clearTimeout(_imgTapTimer);
@@ -1082,6 +1087,37 @@ document.getElementById('req-overlay').addEventListener('click',function(e){
 
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
+
+/* ── mobile login fix: bind ทุก event ที่เป็นไปได้ ── */
+(function bindLogin(){
+  const btn=document.getElementById('login-btn');
+  btn.addEventListener('click',doLogin);
+  btn.addEventListener('touchend',function(e){
+    e.preventDefault(); /* ป้องกัน ghost click บน iOS */
+    doLogin();
+  });
+})();
+/* ══ EXPOSE GLOBALS สำหรับ inline onclick ใน dynamic HTML (mobile safe) ══ */
+window.openReqModal=openReqModal;
+window.closeReqModal=closeReqModal;
+window.setReqType=setReqType;
+window.adjQty=adjQty;
+window.submitRequest=submitRequest;
+window.showDetail=showDetail;
+window.pickFuzzy=pickFuzzy;
+window._tapImg=_tapImg;
+window.debugImg=debugImg;
+
+/* ══ EVENT DELEGATION — detail-content (mobile safe, ไม่ใช้ inline onclick) ══ */
+document.getElementById('detail-content').addEventListener('click',function(e){
+  const btn=e.target.closest('[data-req]');
+  if(btn){openReqModal(btn.dataset.req);}
+});
+document.getElementById('detail-content').addEventListener('touchend',function(e){
+  const btn=e.target.closest('[data-req]');
+  if(btn){e.preventDefault();openReqModal(btn.dataset.req);}
+});
+
 document.getElementById('logout-btn').onclick=doLogout;
 document.getElementById('detail-back').onclick=()=>{clearSearch();show('s-main');};
 
