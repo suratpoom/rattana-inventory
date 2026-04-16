@@ -185,7 +185,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .scan-ready{background:#f0fff6;border-color:#a0d8b0;color:var(--green)}
 .scan-err-box{background:#fff0f0;border-color:#f0a0a0;color:var(--red)}
 
-/* ── ระบบเบิก-สั่ง bottom sheet ── */
+/* ── logout ── */
+.logout-row{display:flex;justify-content:center;padding:16px 0 80px}
+.logout-btn{background:none;border:1.5px solid var(--border);border-radius:20px;padding:9px 28px;font-size:13px;color:var(--muted);cursor:pointer;display:block;margin:0 auto}
+.logout-btn:active{background:var(--light)}
+/* ปุ่มเบิก/สั่ง — เล็ก inline ข้างชื่อสินค้า */
+.req-mini-wrap{display:flex;flex-direction:column;gap:5px;flex-shrink:0;margin-left:8px}
+.req-mini-btn{border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.req-mini-btn svg{width:13px;height:13px;flex-shrink:0}
+.btn-beik{background:#fff4e8;color:#8a4a00;border:1.5px solid #e8a020}
+.btn-sang{background:var(--navy);color:var(--gold2)}
+.btn-beik:active{background:#ffecd0}
+.btn-sang:active{background:var(--navy2)}
 .req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:flex-end}
 .req-overlay.open{display:flex}
 .req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease}
@@ -208,14 +219,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .req-submit:disabled{opacity:.4;cursor:not-allowed}
 .req-cancel{width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--rsm);font-size:14px;color:var(--muted);background:none;cursor:pointer}
 .req-msg{font-size:13px;text-align:center;min-height:20px;margin-bottom:8px;font-weight:500}
-/* ปุ่มใน detail */
-.req-action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 8px}
-.req-action-btn{border:none;border-radius:var(--rsm);padding:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-.req-action-btn svg{width:18px;height:18px}
-.btn-beik{background:#fff4e8;color:#8a4a00;border:2px solid #e8a020}
-.btn-sang{background:var(--navy);color:var(--gold2)}
-.btn-beik:active{background:#ffecd0}
-.btn-sang:active{background:var(--navy2)}
 
 </style>
 </head>
@@ -595,12 +598,21 @@ function extractDriveFileId(u){
 }
 
 function getImg(r){
-  const raw=(r['IMAGE']||r['image']||r['Image']||'').trim();
+  /* ลองหา column IMAGE ในทุก case variant */
+  const raw=(r['IMAGE']||r['image']||r['Image']||r['รูป']||r['รูปภาพ']||'').trim();
   if(!raw||raw==='#N/A'||raw.startsWith('#'))return null;
   const fileId=extractDriveFileId(raw);
-  if(fileId)return `https://lh3.googleusercontent.com/d/${fileId}`;
-  if(raw.startsWith('http'))return raw;
-  return null;
+  if(!fileId)return raw.startsWith('http')?raw:null;
+  /* thumbnail API — เชื่อถือได้กับไฟล์ public, ไม่ต้อง login */
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+}
+
+function getThumb(r){
+  const raw=(r['IMAGE']||r['image']||r['Image']||r['รูป']||r['รูปภาพ']||'').trim();
+  if(!raw||raw.startsWith('#'))return null;
+  const fileId=extractDriveFileId(raw);
+  if(!fileId)return null;
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w100`;
 }
 
 /* debug: แสดงค่า IMAGE column ที่ได้จริงใน detail — กด 3 ครั้งที่รูปเพื่อดู */
@@ -616,9 +628,9 @@ function renderList(results,q){
   if(!results.length){area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';return;}
   let html=`<div class="result-count">พบ ${results.length} รายการ — กดเพื่อเลือกสินค้า</div>`;
   results.slice(0,100).forEach(r=>{
-    const imgUrl=getImg(r);
+    const imgUrl=getThumb(r);
     const thumb=imgUrl
-      ?`<img src="${imgUrl}" style="width:56px;height:56px;border-radius:10px;object-fit:contain" loading="lazy" onerror="this.parentElement.innerHTML='${NOIMG.replace(/'/g,"&#39;")}'">` 
+      ?`<img src="${imgUrl}" style="width:56px;height:56px;border-radius:10px;object-fit:contain" loading="lazy" onerror="this.style.display='none'">` 
       :NOIMG;
     const idx=allData.indexOf(r);
     const cat=[r['CAT GROUP'],r['CAT BRAND']].filter(Boolean).join(' · ');
@@ -678,10 +690,24 @@ function showDetail(r){
     <div class="result-card">
       ${imgHtml}
       <div class="result-body">
-        <div class="result-name">${r['PRODUCT NAME']||'—'}</div>
-        ${r['SHORT NAME']?`<div class="result-short">${r['SHORT NAME']}</div>`:''}
-        ${r['DESCRIPTION']?`<div class="result-sku">${r['DESCRIPTION']}</div>`:''}
-        <div style="margin-bottom:8px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+          <div style="flex:1;min-width:0">
+            <div class="result-name">${r['PRODUCT NAME']||'—'}</div>
+            ${r['SHORT NAME']?`<div class="result-short">${r['SHORT NAME']}</div>`:''}
+            ${r['DESCRIPTION']?`<div class="result-sku">${r['DESCRIPTION']}</div>`:''}
+            <div style="margin-top:6px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
+          </div>
+          <div class="req-mini-wrap">
+            <button class="req-mini-btn btn-beik" onclick="openReqModal('เบิก')">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+              📦 เบิก
+            </button>
+            <button class="req-mini-btn btn-sang" onclick="openReqModal('สั่ง')">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H18c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0022.46 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+              🛒 สั่ง
+            </button>
+          </div>
+        </div>
         <div class="section-title">ราคาขาย</div>
         <table class="price-table">
           <tr><th>ระดับ</th><th>EA (ชิ้น)</th><th>PA (แพ็ก)</th><th>BP (แพ็กใหญ่)</th><th>CS (ลัง)</th></tr>
@@ -705,18 +731,6 @@ function showDetail(r){
           <tr><th>หน่วย</th><th>ชื่อรัตนา</th><th>Unit</th><th>Qty</th><th>Code</th></tr>
           ${unitRows}
         </table>
-        <div class="section-title">แจ้งเบิก / สั่งสินค้า</div>
-        <div class="req-action-row">
-          <button class="req-action-btn btn-beik" onclick="openReqModal('เบิก')">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34C18 2.54 15.88.42 13.34.42c-1.36 0-2.6.56-3.5 1.46L9 2.74 8.16 1.88C7.26.98 6.02.42 4.66.42 2.12.42 0 2.54 0 5.06c0 .46.11.9.18 1.34H0v2h20V6zm-2-1.34C18 6.07 16.07 8 13.66 8c-.87 0-1.67-.33-2.28-.85L9 4.88l-2.38 2.27C6.01 7.67 5.21 8 4.34 8 1.93 8 0 6.07 0 4.66 0 3.24 1.07 2 2.66 2S5.1 2.76 5.77 3.44L9 6.59l3.23-3.15C12.9 2.76 13.81 2 15.34 2c1.59 0 2.66 1.07 2.66 2.66zM0 8v2h20V8H0zm0 4v8h20v-8H0z"/></svg>
-            เบิกสินค้า
-          </button>
-          <button class="req-action-btn btn-sang" onclick="openReqModal('สั่ง')">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H18c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0022.46 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-            สั่งสินค้า
-          </button>
-        </div>
-        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:4px">จำนวนเป็นลัง (CS) เท่านั้น</div>
       </div>
     </div>`;
   show('s-detail');
