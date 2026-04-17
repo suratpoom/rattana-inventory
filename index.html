@@ -239,7 +239,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .barcode-cs-val{font-family:monospace;font-size:13px;font-weight:700;color:var(--navy);flex:1}
 .barcode-cs-label{font-size:10px;color:var(--muted);white-space:nowrap}
 
-.req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:flex-end}
+.req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;display:none;align-items:flex-end}
 .req-overlay.open{display:flex}
 .req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -452,8 +452,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   <div class="content" id="detail-content"></div>
 </div>
 
-</div><!-- #app -->
-
 <!-- ══ BOTTOM NAV — แสดงเมื่อ login แล้ว ══ -->
 <nav class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="bnav-item active" id="bnav-search" onclick="navTo('search')">
@@ -467,7 +465,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 </nav>
 
 <!-- ══ SCREEN: นับสต็อค ══ -->
-<div id="s-stock" class="screen has-bnav" style="display:none;flex-direction:column;height:100vh;background:var(--light)">
+<div id="s-stock" class="screen has-bnav">
   <div class="topbar">
     <div class="topbar-logo">
       <img src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8" onerror="this.style.display='none'" alt="">
@@ -526,6 +524,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
   </div>
 </div>
+
+</div><!-- #app -->
 
 <!-- ── MODAL เบิก-สินค้าขาด ── V2.3 -->
 <div class="req-overlay" id="req-overlay">
@@ -1401,18 +1401,13 @@ document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='E
 
 /* ══ BOTTOM NAV ══ */
 function navTo(page){
-  /* update active tab */
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   if(page==='search'){
     document.getElementById('bnav-search').classList.add('active');
     show('s-main');
   } else if(page==='stock'){
     document.getElementById('bnav-stock').classList.add('active');
-    /* show s-stock manually — it lives outside #app */
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    const sc=document.getElementById('s-stock');
-    sc.style.display='flex';
-    sc.classList.add('active');
+    show('s-stock');
     scUpdateTopbarSub();
   }
 }
