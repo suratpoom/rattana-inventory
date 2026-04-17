@@ -283,7 +283,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .bnav-item.active span{color:var(--navy)}
 .bnav-item:active{opacity:.7}
 /* push content above bottom nav */
-.has-bnav .content{padding-bottom:76px}
+.has-bnav .content{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
 
 /* ══ STOCK COUNT PAGE ══ */
 .sc-scan-row{display:flex;gap:8px;margin-bottom:10px}
@@ -482,7 +482,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <span class="role-badge" id="sc-chip-role"></span>
     </div>
   </div>
-  <div class="content has-bnav" id="sc-content" style="padding-bottom:76px">
+  <div class="content has-bnav" id="sc-content">
 
     <!-- ช่องค้นหา + ปุ่มสแกน (เหมือนหน้าค้นหา) -->
     <div class="search-box" style="margin-bottom:12px">
@@ -518,7 +518,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
         <button class="sc-qty-minus" onclick="scAdjQty(-1)">−</button>
         <input class="sc-qty-input" id="sc-qty" type="number" min="0" value="0" inputmode="numeric">
         <button class="sc-qty-plus" onclick="scAdjQty(1)">+</button>
-        <span class="sc-unit-chip" id="sc-unit-chip">CS</span>
+        <span class="sc-unit-chip" id="sc-unit-chip" style="display:none">CS</span>
       </div>
 
       <!-- preview EA ที่คำนวณได้ -->
@@ -635,7 +635,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">รายการที่เพิ่มไว้ (กด 🗑️ เพื่อลบทีละอัน)</div>
     <div id="sc-edit-entries" style="margin-bottom:16px;max-height:280px;overflow-y:auto"></div>
 
-    <button class="req-submit" style="background:var(--urgent);color:white" onclick="scDeleteItem()">🗑️ ลบรายการนี้ทั้งหมด</button>
     <button class="req-cancel" onclick="scCloseEditModal()">ปิด</button>
   </div>
 </div>
