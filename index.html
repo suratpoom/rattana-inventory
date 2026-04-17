@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d2b5e">
-<title>รัตนมาร์ท — ระบบค้นหาสินค้า v2</title>
+<title>รัตนมาร์ท — ระบบค้นหาสินค้า v2.3</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -15,6 +15,7 @@
   --white:#ffffff;--light:#f4f6fb;--border:#d0daf0;
   --text:#0d2b5e;--muted:#5a7099;
   --red:#c0392b;--green:#1a7a4a;
+  --urgent:#d63031;--urgent-bg:#ffe8e8;--urgent-dark:#8b1a1a;
   --radius:14px;--rsm:8px;
 }
 html,body{height:100%;background:var(--light)}
@@ -64,7 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sdot.err{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* FAB scroll-to-top — แก้ไขปัญหา floating button กด ── V2 */
+/* FAB scroll-to-top */
 .fab-top{
   position:fixed;bottom:28px;right:20px;
   width:52px;height:52px;
@@ -105,12 +106,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .stock-label{font-size:11px;color:var(--muted)}
 .stock-num{font-size:13px;font-weight:600;color:var(--navy)}
 
-/* Detail */
+/* Detail — รูปลดจาก 168 → 130 (V2.1 FIX #2) */
 .result-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
-.result-img-wrap{width:100%;height:168px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.result-img{width:100%;height:168px;object-fit:contain;display:block}
-.result-img-ph{width:100%;height:180px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center}
-.result-img-ph svg{width:52px;height:52px;fill:#c0cce0}
+.result-img-wrap{width:100%;height:130px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.result-img{width:100%;height:130px;object-fit:contain;display:block}
+.result-img-ph{width:100%;height:130px;background:#f0f4fa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.result-img-ph svg{width:44px;height:44px;fill:#c0cce0}
 .result-body{padding:18px}
 .result-name{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:2px;line-height:1.3}
 .result-short{font-size:13px;color:var(--muted);margin-bottom:4px}
@@ -143,7 +144,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .iv{font-size:13px;font-weight:500;color:var(--navy);text-align:right;word-break:break-all}
 .iv.mono{font-family:monospace;font-size:12px}
 
-/* ── Fuzzy search / คุณหมายถึง? ── */
+/* Fuzzy search */
 .fuzzy-box{background:#fffbe8;border:1px solid #f0d060;border-radius:var(--rsm);padding:12px 14px;margin-bottom:10px}
 .fuzzy-label{font-size:12px;color:#8a6a00;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .fuzzy-label svg{width:14px;height:14px;fill:#c09000}
@@ -152,14 +153,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .fuzzy-chip:active{background:#fff8d0}
 
 .scanner-wrap{background:var(--navy3);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;position:relative}
-/* reader div ถูก inject โดย html5-qrcode */
 #html5-qr-reader{width:100%;border-radius:0!important;border:none!important}
 #html5-qr-reader video{width:100%!important;object-fit:cover;display:block}
 #html5-qr-reader img{display:none!important}
-/* ซ่อน built-in UI ที่ไม่ต้องการ */
 #html5-qr-reader__dashboard{display:none!important}
 #html5-qr-reader__header_message{display:none!important}
-/* Custom overlay ทับบน reader */
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:10}
 .scanner-frame{width:260px;height:130px;border-radius:14px;position:relative}
 .scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 1.8s ease-in-out infinite}
@@ -180,23 +178,67 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .manual-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;font-size:15px;outline:none;background:var(--white);color:var(--text)}
 .manual-btn{background:var(--navy);color:var(--gold2);border:none;border-radius:var(--rsm);padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer}
 
-/* สถานะ scanner */
 .scan-status{background:var(--white);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:42px}
 .scan-ready{background:#f0fff6;border-color:#a0d8b0;color:var(--green)}
 .scan-err-box{background:#fff0f0;border-color:#f0a0a0;color:var(--red)}
 
-/* ── logout ── */
 .logout-row{display:flex;justify-content:center;padding:16px 0 80px}
 .logout-btn{background:none;border:1.5px solid var(--border);border-radius:20px;padding:9px 28px;font-size:13px;color:var(--muted);cursor:pointer;display:block;margin:0 auto}
 .logout-btn:active{background:var(--light)}
-/* ปุ่มเบิก/สั่ง — เล็ก inline ข้างชื่อสินค้า */
+
+/* ── ปุ่มเบิก/สินค้าขาด ── V2.2 */
 .req-mini-wrap{display:flex;flex-direction:column;gap:5px;flex-shrink:0;margin-left:8px}
 .req-mini-btn{border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px}
 .req-mini-btn svg{width:13px;height:13px;flex-shrink:0}
 .btn-beik{background:#fff4e8;color:#8a4a00;border:1.5px solid #e8a020}
-.btn-sang{background:var(--navy);color:var(--gold2)}
+.btn-khad{background:var(--urgent);color:var(--white);border:1.5px solid var(--urgent-dark);animation:urgentPulse 2s ease-in-out infinite}
 .btn-beik:active{background:#ffecd0}
-.btn-sang:active{background:var(--navy2)}
+.btn-khad:active{background:var(--urgent-dark);animation:none}
+@keyframes urgentPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(214,48,49,.4)}
+  50%{box-shadow:0 0 0 4px rgba(214,48,49,0)}
+}
+
+/* stock bar — ใช้กับทั้ง เบิก และ สินค้าขาด */
+.stock-bar{display:none;border-radius:var(--rsm);padding:12px 16px;margin-bottom:12px}
+.stock-bar.visible{display:block}
+.stock-bar.theme-beik{background:#fff8ee;border:1.5px solid #e8c080}
+.stock-bar.theme-khad{background:#fff0f0;border:1.5px solid #f0b0b0}
+.stock-bar-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.stock-bar.theme-beik .stock-bar-title{color:#7a4a00}
+.stock-bar.theme-khad .stock-bar-title{color:var(--urgent-dark)}
+.stock-bar-title svg{width:13px;height:13px}
+.stock-bar.theme-beik .stock-bar-title svg{fill:#c07820}
+.stock-bar.theme-khad .stock-bar-title svg{fill:var(--urgent)}
+.stock-bar-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stock-cell{background:var(--white);border-radius:6px;padding:10px 12px;text-align:center}
+.stock-bar.theme-beik .stock-cell{border:1px solid #e8d0a0}
+.stock-bar.theme-khad .stock-cell{border:1px solid #f0c0c0}
+.stock-cell-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.stock-cell-val{font-size:22px;font-weight:800;line-height:1}
+.stock-cell-val.ok{color:var(--green)}
+.stock-cell-val.low{color:#e07010}
+.stock-cell-val.zero{color:var(--urgent)}
+
+/* กล่องผลการคำนวณเบิก */
+.transfer-box{display:none;border-radius:var(--rsm);padding:12px 14px;margin-bottom:12px;border:1.5px solid var(--border)}
+.transfer-box.visible{display:block}
+.transfer-box.t-ok{background:#f0fff6;border-color:#a0d8b0}
+.transfer-box.t-warn{background:#fff8e8;border-color:#e8c060}
+.transfer-box.t-danger{background:#fff0f0;border-color:#f0b0b0}
+.transfer-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(0,0,0,.06)}
+.transfer-row:last-child{border-bottom:none}
+.transfer-label{color:var(--muted);display:flex;align-items:center;gap:5px}
+.transfer-label svg{width:13px;height:13px;flex-shrink:0;fill:currentColor}
+.transfer-val{font-weight:700;font-size:14px}
+.tv-green{color:var(--green)}
+.tv-orange{color:#a05000}
+.tv-red{color:var(--urgent)}
+.barcode-cs-row{background:var(--light);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-top:10px;display:flex;align-items:center;gap:8px}
+.barcode-cs-row svg{width:14px;height:14px;fill:var(--muted);flex-shrink:0}
+.barcode-cs-val{font-family:monospace;font-size:13px;font-weight:700;color:var(--navy);flex:1}
+.barcode-cs-label{font-size:10px;color:var(--muted);white-space:nowrap}
+
 .req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:flex-end}
 .req-overlay.open{display:flex}
 .req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease}
@@ -204,10 +246,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .req-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;display:block}
 .req-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
 .req-product{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.4}
-.req-type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-.req-type-btn{border:2px solid var(--border);border-radius:var(--rsm);padding:14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s;text-align:center}
+
+/* V2.2: type buttons — 2 คอลัมน์ (ตัด สั่ง ออก) */
+.req-type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.req-type-btn{border:2px solid var(--border);border-radius:var(--rsm);padding:12px 8px;font-size:14px;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s;text-align:center;line-height:1.3}
+.req-type-btn span{font-size:10px;font-weight:400;display:block;margin-top:2px}
 .req-type-btn.active.beik{border-color:#e8a020;background:#fff4e8;color:#8a4a00}
-.req-type-btn.active.sang{border-color:var(--navy);background:var(--navy);color:var(--gold2)}
+.req-type-btn.active.khad{border-color:var(--urgent-dark);background:var(--urgent);color:var(--white)}
+
 .req-qty-row{display:flex;align-items:center;gap:12px;margin-bottom:24px}
 .req-qty-label{font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0}
 .req-qty-minus,.req-qty-plus{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--white);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--navy);flex-shrink:0}
@@ -252,7 +298,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
-      <div class="topbar-sub">ระบบค้นหาสินค้า v2</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า v2.3</div>
     </div>
     <div class="user-chip">
       <span class="chip-name" id="chip-name"></span>
@@ -281,13 +327,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <div class="logout-row"><button class="logout-btn" id="logout-btn">ออกจากระบบ</button></div>
   </div>
 
-  <!-- FAB scroll-to-top ── V2 FIX #3 -->
   <button class="fab-top" id="fab-top" title="กลับขึ้นบน">
     <svg viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
   </button>
 </div>
 
-<!-- ── SCANNER V2 ── -->
+<!-- ── SCANNER ── -->
 <div id="s-scanner" class="screen">
   <div class="topbar">
     <button class="topbar-back" id="scanner-back">
@@ -295,14 +340,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </button>
     <div style="flex:1">
       <div class="topbar-title">สแกนบาร์โค้ด</div>
-      <div class="topbar-sub">รัตนมาร์ท v2 — Android Ready</div>
+      <div class="topbar-sub">รัตนมาร์ท v2.1</div>
     </div>
   </div>
   <div class="content">
-    <!-- V2: html5-qrcode renders video here -->
     <div class="scanner-wrap" style="min-height:280px">
       <div id="html5-qr-reader"></div>
-      <!-- Custom overlay -->
       <div class="scan-zone-dim" id="scan-zone-dim"></div>
       <div class="scanner-overlay" id="scan-overlay">
         <div class="scanner-frame">
@@ -351,35 +394,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 </div><!-- #app -->
 
-<!-- ── MODAL เบิก-สั่ง ── -->
+<!-- ── MODAL เบิก-สินค้าขาด ── V2.3 -->
 <div class="req-overlay" id="req-overlay">
   <div class="req-sheet">
     <span class="req-handle"></span>
     <div class="req-title" id="req-title">เบิกสินค้า</div>
     <div class="req-product" id="req-product"></div>
     <div class="req-type-row">
-      <button class="req-type-btn active beik" id="req-type-beik" onclick="setReqType('เบิก')">📦 เบิก<br><span style="font-size:11px;font-weight:400">ของขาดชั้นวาง</span></button>
-      <button class="req-type-btn sang" id="req-type-sang" onclick="setReqType('สั่ง')">🛒 สั่ง<br><span style="font-size:11px;font-weight:400">สั่งซื้อเพิ่ม</span></button>
+      <button class="req-type-btn active beik" id="req-type-beik" onclick="setReqType('เบิก')">📦 เบิก<span>ของขาดชั้นวาง</span></button>
+      <button class="req-type-btn khad" id="req-type-khad" onclick="setReqType('สินค้าขาด')">🚨 สินค้าขาด<span>แจ้งจัดซื้อด่วน</span></button>
     </div>
+
+    <!-- stock C4/W4 — แสดงทั้งสองโหมด -->
+    <div class="stock-bar" id="req-stock-bar">
+      <div class="stock-bar-title">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>
+        สต็อกปัจจุบัน
+      </div>
+      <div class="stock-bar-row">
+        <div class="stock-cell">
+          <div class="stock-cell-label">C4 (คลังหลัก)</div>
+          <div class="stock-cell-val" id="req-stock-c4">—</div>
+        </div>
+        <div class="stock-cell">
+          <div class="stock-cell-label">W4 (คลังโอนย้าย)</div>
+          <div class="stock-cell-val" id="req-stock-w4">—</div>
+        </div>
+      </div>
+    </div>
+
     <div class="req-qty-row">
-      <span class="req-qty-label">จำนวน</span>
+      <span class="req-qty-label" id="req-qty-label">จำนวนที่เบิก</span>
       <button class="req-qty-minus" onclick="adjQty(-1)">−</button>
       <input class="req-qty-input" id="req-qty" type="number" min="1" max="9999" value="1" inputmode="numeric">
       <button class="req-qty-plus" onclick="adjQty(1)">+</button>
       <span class="req-unit">ลัง (CS)</span>
     </div>
+
+    <!-- ผลคำนวณ — แสดงเฉพาะโหมดเบิก -->
+    <div class="transfer-box" id="transfer-box">
+      <div class="transfer-row">
+        <span class="transfer-label">
+          <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+          เบิกได้จาก C4 ทันที
+        </span>
+        <span class="transfer-val" id="tf-from-c4">—</span>
+      </div>
+      <div class="transfer-row" id="tf-row-w4">
+        <span class="transfer-label">
+          <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
+          ต้องโอนจาก W4
+        </span>
+        <span class="transfer-val" id="tf-from-w4">—</span>
+      </div>
+      <div class="transfer-row" id="tf-row-order" style="display:none">
+        <span class="transfer-label">
+          <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+          ต้องสั่งเพิ่ม
+        </span>
+        <span class="transfer-val tv-red" id="tf-order">—</span>
+      </div>
+    </div>
+
+    <!-- บาร์โค้ด CS — แสดงเสมอเมื่อมีข้อมูล -->
+    <div class="barcode-cs-row" id="barcode-cs-row" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M1 5h2v14H1zm4 0h2v14H5zm4 0h1v14H9zm3 0h1v14h-1zm3 0h2v14h-2zm4 0h2v14h-2z"/></svg>
+      <div>
+        <div class="barcode-cs-label">บาร์โค้ดลัง (CODE CS)</div>
+        <div class="barcode-cs-val" id="barcode-cs-val">—</div>
+      </div>
+    </div>
+
     <div class="req-msg" id="req-msg"></div>
     <button class="req-submit" id="req-submit" onclick="submitRequest()">ส่งคำขอ</button>
     <button class="req-cancel" onclick="closeReqModal()">ยกเลิก</button>
   </div>
 </div>
 
-<!-- html5-qrcode: ดีกว่า ZXing สำหรับ Android Chrome (ใช้ BarcodeDetector native API) -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
 /* ══════════════════════════════════════════════════
-   CONFIG — รัตนมาร์ท V2
+   CONFIG — รัตนมาร์ท V2.1
    ══════════════════════════════════════════════════ */
 const CONFIG = {
   PROD_SHEET_ID:   '1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw',
@@ -390,23 +486,6 @@ const CONFIG = {
   ROLE_RESTRICTED: 5,
   SESSION_KEY:     'rattana_v8_session',
   IMG_FOLDER_ID:   '17WrWJ9eU1-UcxBJ1s52I1kzizHndDWJY',
-  /* ── ระบบเบิก-สั่ง ──
-     วิธีตั้งค่า:
-     1. เปิด Google Sheet สินค้า → Extensions → Apps Script
-     2. วางโค้ดนี้แล้ว Deploy เป็น Web App (Execute as: Me, Who has access: Anyone)
-     3. Copy URL ที่ได้มาใส่ด้านล่าง
-
-     --- Apps Script code ---
-     function doPost(e){
-       var data=JSON.parse(e.postData.contents);
-       var ss=SpreadsheetApp.openById('1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw');
-       var sh=ss.getSheetByName('เบิก-สั่ง')||ss.insertSheet('เบิก-สั่ง');
-       if(sh.getLastRow()===0)sh.appendRow(['วันที่','เวลา','ชื่อสินค้า','CODE EA','จำนวน (CS)','ประเภท','ผู้แจ้ง']);
-       sh.appendRow([data.date,data.time,data.name,data.codeEA,data.qty,data.type,data.user]);
-       return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
-     }
-     function doGet(e){return ContentService.createTextOutput('ok');}
-     ------------------------ */
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxyW8RIrdG-YoR-A53uH1GrxOWVASN0c1ryaxBL9asFAvRIfghE9uNU5C11N3yP8G0ULA/exec',
 };
 
@@ -480,7 +559,7 @@ async function enterApp(){
 }
 function doLogout(){clearSession();currentUser=null;allData=[];document.getElementById('inp-user').value='';document.getElementById('inp-pw').value='';clearSearch();show('s-login');}
 
-/* ══ FAB SCROLL-TO-TOP — V2 FIX #3 ══ */
+/* ══ FAB SCROLL-TO-TOP ══ */
 const mainContent=document.getElementById('main-content');
 const fabTop=document.getElementById('fab-top');
 mainContent.addEventListener('scroll',()=>{
@@ -533,14 +612,12 @@ function doSearch(raw){
 
   let scored;
   if(tokens.length>1){
-    /* Multi-token: ทุก token ต้องพบในสินค้า เช่น "โอเล โลชั่น" */
     scored=allData.map(r=>{
       const name=(r['PRODUCT NAME']||'').toLowerCase();
       const short=(r['SHORT NAME']||'').toLowerCase();
       const allText=SEARCH_COLS.map(k=>(r[k]||'').toLowerCase()).join(' ');
       const allMatch=tokens.every(t=>name.includes(t)||short.includes(t)||allText.includes(t));
       if(!allMatch)return{r,score:0};
-      /* คำนวณ score: token ที่อยู่ในชื่อหลัก = คะแนนสูงกว่า */
       const score=tokens.reduce((acc,t)=>{
         if(name.startsWith(t)||short.startsWith(t))return acc+40;
         if(name.includes(t)||short.includes(t))return acc+20;
@@ -577,33 +654,27 @@ function doSearch(raw){
   renderList(scored.map(x=>x.r),tokens[0]);
 }
 
-/* ══ IMAGE — V2: รองรับ Google Drive thumbnail ══ */
+/* ══ IMAGE ══ */
 const NOIMG=`<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
 
 function extractDriveFileId(u){
   if(!u)return null;
-  /* ล้าง whitespace และ quote ที่อาจมาจาก VLOOKUP */
   u=u.trim().replace(/^["']+|["']+$/g,'').trim();
-  /* กรอง error ของ VLOOKUP */
   if(!u||u==='#N/A'||u==='#REF!'||u==='#VALUE!'||u.startsWith('#'))return null;
-  /* เป็น File ID ตรงๆ (25-60 chars, ไม่มี slash) */
   if(/^[a-zA-Z0-9_-]{25,60}$/.test(u))return u;
   let m;
   if((m=u.match(/\/d\/([a-zA-Z0-9_-]{25,60})/)))return m[1];
   if((m=u.match(/[?&]id=([a-zA-Z0-9_-]{25,60})/)))return m[1];
   if((m=u.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]{25,60})/)))return m[1];
-  /* thumbnail URL */
   if((m=u.match(/thumbnail\?id=([a-zA-Z0-9_-]{25,60})/)))return m[1];
   return null;
 }
 
 function getImg(r){
-  /* ลองหา column IMAGE ในทุก case variant */
   const raw=(r['IMAGE']||r['image']||r['Image']||r['รูป']||r['รูปภาพ']||'').trim();
   if(!raw||raw==='#N/A'||raw.startsWith('#'))return null;
   const fileId=extractDriveFileId(raw);
   if(!fileId)return raw.startsWith('http')?raw:null;
-  /* thumbnail API — เชื่อถือได้กับไฟล์ public, ไม่ต้อง login */
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
 }
 
@@ -615,7 +686,6 @@ function getThumb(r){
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w100`;
 }
 
-/* debug: แสดงค่า IMAGE column ที่ได้จริงใน detail — กด 3 ครั้งที่รูปเพื่อดู */
 function debugImg(r){
   const raw=r['IMAGE']||r['image']||r['Image']||'(ไม่มีค่า)';
   const fid=extractDriveFileId(raw);
@@ -657,7 +727,7 @@ function renderList(results,q){
   area.innerHTML=html;
 }
 
-/* ══ DETAIL ══ */
+/* ══ DETAIL — V2.1: เพิ่มปุ่มสินค้าขาด ══ */
 function showDetail(r){
   const canSeeCC00=currentUser&&currentUser.role>=CONFIG.ROLE_RESTRICTED;
   const imgUrl=getImg(r);
@@ -685,7 +755,7 @@ function showDetail(r){
 
   document.getElementById('dtitle').textContent=r['PRODUCT NAME']||'รายละเอียดสินค้า';
   document.getElementById('dsku').textContent=r['SHORT NAME']||'';
-  _curProd=r; /* เก็บ reference ไว้ใช้กับ modal และ debug */
+  _curProd=r;
   document.getElementById('detail-content').innerHTML=`
     <div class="result-card">
       ${imgHtml}
@@ -702,9 +772,9 @@ function showDetail(r){
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
               📦 เบิก
             </button>
-            <button class="req-mini-btn btn-sang" data-req="สั่ง">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H18c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0022.46 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-              🛒 สั่ง
+            <button class="req-mini-btn btn-khad" data-req="สินค้าขาด">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+              🚨 สินค้าขาด
             </button>
           </div>
         </div>
@@ -737,14 +807,7 @@ function showDetail(r){
 }
 
 /* ══════════════════════════════════════════════════
-   SCANNER V2 — html5-qrcode (Android-optimized)
-   ══════════════════════════════════════════════════
-   ปัญหา V1: ZXing JS ไม่รองรับ Android Chrome ดี
-   แก้ V2:
-   1. ใช้ html5-qrcode ที่ใช้ BarcodeDetector native API บน Android
-   2. Torch (ไฟฉาย) button สำหรับบาร์โค้ดมืด
-   3. Vibration + beep เมื่อสแกนได้
-   4. กดกลับ → auto clear search (FIX #4)
+   SCANNER V2 — html5-qrcode
    ══════════════════════════════════════════════════ */
 
 function setScanStatus(msg,type=''){
@@ -755,7 +818,6 @@ function setScanStatus(msg,type=''){
   document.getElementById('scan-txt')&&(document.getElementById('scan-txt').textContent=msg);
 }
 
-/* beep ตอนสแกนได้ */
 function beep(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -779,29 +841,24 @@ async function startScan(){
   }
 
   try{
-    /* ขอ permission กล้องก่อน เพื่อ enumerate devices */
     await navigator.mediaDevices.getUserMedia({video:true}).then(s=>s.getTracks().forEach(t=>t.stop())).catch(()=>{});
 
-    /* หาชื่อ camera หลัง (environment) */
     const devices=await Html5Qrcode.getCameras().catch(()=>[]);
     let camId=null;
     if(devices&&devices.length){
-      /* prefer camera ที่มี "back" หรือ "environment" หรือตัวสุดท้าย */
       const back=devices.find(d=>/(back|rear|environment|0)/i.test(d.label));
       camId=(back||devices[devices.length-1]).id;
     }
 
-    /* ล้าง reader เก่าก่อน */
     if(html5QrScanner){try{await html5QrScanner.stop();}catch(e){}html5QrScanner=null;}
 
     html5QrScanner=new Html5Qrcode('html5-qr-reader',{
       verbose:false,
-      experimentalFeatures:{useBarCodeDetectorIfSupported:true} /* ใช้ native BarcodeDetector บน Android */
+      experimentalFeatures:{useBarCodeDetectorIfSupported:true}
     });
 
     const config={
       fps:15,
-      /* ไม่กำหนด qrbox เพื่อให้สแกนได้ทั้งหน้าจอ — แก้ปัญหาสแกนยาก */
       qrbox:{width:280,height:140},
       aspectRatio:1.5,
       formatsToSupport:[
@@ -817,23 +874,20 @@ async function startScan(){
       ]
     };
 
-    /* เลือก camera ที่ถูกต้อง */
     const cameraConfig=camId?{deviceId:{exact:camId}}:{facingMode:{exact:'environment'}};
 
     await html5QrScanner.start(
       cameraConfig,
       config,
       (decodedText)=>{
-        /* สแกนได้! */
         if(!scannerActive||decodedText===lastScanned)return;
         lastScanned=decodedText;
         beep();vibrate([60,40,60]);
         onScanFound(decodedText);
       },
-      (err)=>{/* scan error per frame - ignore */}
+      (err)=>{}
     );
 
-    /* ดึง video track สำหรับ torch */
     setTimeout(()=>{
       try{
         const v=document.querySelector('#html5-qr-reader video');
@@ -873,7 +927,6 @@ async function stopScan(){
   document.getElementById('manual-bc').value='';
 }
 
-/* torch toggle */
 document.getElementById('torch-btn').onclick=async function(){
   if(!torchTrack)return;
   try{
@@ -886,7 +939,6 @@ document.getElementById('torch-btn').onclick=async function(){
 function onScanFound(code){
   stopScan();
   show('s-main');
-  /* V2 FIX #4: clear search ก่อนใส่บาร์โค้ดที่สแกนได้ */
   clearSearch();
   document.getElementById('search-input').value=code;
   document.getElementById('clear-btn').classList.add('visible');
@@ -897,19 +949,14 @@ function onScanFound(code){
   else{setStat('ไม่พบบาร์โค้ด '+code+' ในระบบ','err');document.getElementById('results-area').innerHTML=`<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด ${code} ในระบบ</div>`;}
 }
 
-/* ══ FUZZY SEARCH — Thai-aware ══
-   รองรับการพิมพ์ผิด เช่น น้าดิ่ม → น้ำดื่ม
-   1. normalize สระสั้น/ยาว และวรรณยุกต์
-   2. Levenshtein distance
-   3. แสดง "คุณหมายถึง?" chips
-   ══════════════════════════════════════ */
+/* ══ FUZZY SEARCH ══ */
 function normalizeThai(s){
   return s
-    .replace(/ำ/g,'า')           // น้ำ → น้า
-    .replace(/[ึื]/g,'ิ')        // สระ อึ/อื → อิ
-    .replace(/[ู]/g,'ุ')         // อู → อุ
-    .replace(/[ี]/g,'ิ')         // อี → อิ
-    .replace(/[็่้๊๋]/g,'')      // ตัดวรรณยุกต์/ไม้ไต่คู้
+    .replace(/ำ/g,'า')
+    .replace(/[ึื]/g,'ิ')
+    .replace(/[ู]/g,'ุ')
+    .replace(/[ี]/g,'ิ')
+    .replace(/[็่้๊๋]/g,'')
     .replace(/[ๆฯ]/g,'')
     .toLowerCase()
     .trim();
@@ -926,7 +973,6 @@ function levenshtein(a,b){
   return dp[m][n];
 }
 function fuzzySearch(q){
-  /* หา candidates ที่ใกล้เคียงที่สุด */
   const nq=normalizeThai(q);
   const maxDist=Math.max(2,Math.floor(nq.length*0.45));
   const scored=[];
@@ -935,9 +981,7 @@ function fuzzySearch(q){
     const short=r['SHORT NAME']||'';
     const nn=normalizeThai(name);
     const ns=normalizeThai(short);
-    /* ถ้า normalize แล้วมี substring ตรง — ถือว่าใกล้มาก */
     if(nn.includes(nq)||ns.includes(nq)){scored.push({r,dist:0,name});return;}
-    /* ใช้ Levenshtein กับ window ขนาด nq.length บน string ชื่อสินค้า */
     let minDist=999;
     for(let i=0;i<=nn.length-nq.length+2;i++){
       const window=nn.substr(Math.max(0,i),nq.length+2);
@@ -956,7 +1000,6 @@ function renderFuzzy(q){
     area.innerHTML=`<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้า "${q}" ในระบบ</div>`;
     return;
   }
-  /* unique name chips */
   const seen=new Set();
   const chips=candidates.filter(c=>{
     const k=(c.r['PRODUCT NAME']||'').substr(0,30);
@@ -976,13 +1019,11 @@ function renderFuzzy(q){
     </div>`;
 }
 function pickFuzzy(r,name){
-  /* เมื่อกด chip → ใส่ชื่อสินค้าใน search แล้วเปิด detail */
   document.getElementById('search-input').value=name;
   document.getElementById('clear-btn').classList.add('visible');
   showDetail(r);
 }
 
-/* ── image error handler — แยกออกมาเพื่อป้องกัน quote conflict ใน onerror attribute ── */
 function imgLoadErr(img){
   const wrap=img.parentElement;
   if(wrap){wrap.outerHTML='<div class="result-img-ph">'+NOIMG+'</div>';}
@@ -996,40 +1037,140 @@ function _tapImg(el,r){
 }
 
 /* ══════════════════════════════════════════════════
-   ระบบเบิก-สั่ง — บันทึกลง Google Sheet tab เบิก-สั่ง
+   ระบบเบิก-สินค้าขาด — V2.3
    ══════════════════════════════════════════════════ */
+function _stockClass(v){
+  const n=parseInt(v);
+  if(isNaN(n)||v===''||v==='—')return '';
+  if(n<=0)return 'zero';
+  if(n<=5)return 'low';
+  return 'ok';
+}
+
+/* แสดงสต็อก C4/W4 ใน stock-bar */
+function _renderStockBar(theme){
+  const r=_curProd;
+  const c4raw=r?(r['STOCK C4']||''):'';
+  const w4raw=r?(r['STOCK W4']||''):'';
+  const bar=document.getElementById('req-stock-bar');
+  bar.className='stock-bar visible theme-'+theme;
+  const c4el=document.getElementById('req-stock-c4');
+  const w4el=document.getElementById('req-stock-w4');
+  c4el.textContent=r?fmtStock(c4raw):'—';
+  w4el.textContent=r?fmtStock(w4raw):'—';
+  c4el.className='stock-cell-val '+_stockClass(c4raw);
+  w4el.className='stock-cell-val '+_stockClass(w4raw);
+}
+
+/* คำนวณและแสดงกล่อง transfer เมื่อกรอกจำนวนเบิก */
+function calcTransfer(){
+  if(_reqType!=='เบิก')return;
+  const r=_curProd;
+  const qty=parseInt(document.getElementById('req-qty').value)||0;
+  const c4=parseInt((r&&r['STOCK C4'])||0)||0;
+  const w4=parseInt((r&&r['STOCK W4'])||0)||0;
+  const total=c4+w4;
+
+  const fromC4=Math.min(qty,Math.max(0,c4));
+  const fromW4=Math.min(Math.max(0,qty-c4),Math.max(0,w4));
+  const needOrder=Math.max(0,qty-total);
+
+  const box=document.getElementById('transfer-box');
+  box.classList.add('visible');
+
+  /* สีกล่องตามสถานะ */
+  box.className='transfer-box visible '+(needOrder>0?'t-danger':fromW4>0?'t-warn':'t-ok');
+
+  document.getElementById('tf-from-c4').textContent=fromC4+' ลัง';
+  document.getElementById('tf-from-c4').className='transfer-val '+(fromC4>0?'tv-green':'tv-orange');
+
+  const w4row=document.getElementById('tf-row-w4');
+  const orderRow=document.getElementById('tf-row-order');
+
+  if(fromW4>0){
+    w4row.style.display='flex';
+    document.getElementById('tf-from-w4').textContent='โอน '+fromW4+' ลัง จาก W4';
+    document.getElementById('tf-from-w4').className='transfer-val tv-orange';
+  } else {
+    w4row.style.display='none';
+  }
+
+  if(needOrder>0){
+    orderRow.style.display='flex';
+    document.getElementById('tf-order').textContent='สั่งเพิ่ม '+needOrder+' ลัง!';
+  } else {
+    orderRow.style.display='none';
+  }
+}
+
 function openReqModal(type){
   _reqType=type;
   const r=_curProd;
-  document.getElementById('req-title').textContent=(type==='เบิก'?'📦 เบิกสินค้า':'🛒 สั่งสินค้า');
-  document.getElementById('req-product').textContent=(r?r['PRODUCT NAME']:'')+(r&&r['CODE EA']?' | CODE EA: '+r['CODE EA']:'');
+  document.getElementById('req-product').textContent=
+    (r?r['PRODUCT NAME']:'')+(r&&r['CODE EA']?' | CODE EA: '+r['CODE EA']:'');
   document.getElementById('req-qty').value='1';
   document.getElementById('req-msg').textContent='';
   document.getElementById('req-msg').style.color='';
   document.getElementById('req-submit').disabled=false;
   document.getElementById('req-submit').textContent='ส่งคำขอ';
-  document.getElementById('req-submit').style.background=type==='เบิก'?'#e8a020':'var(--navy)';
-  document.getElementById('req-submit').style.color=type==='เบิก'?'#fff':'var(--gold2)';
-  /* set active type buttons */
+
+  /* บาร์โค้ด CS */
+  const csCode=r?(r['CODE CS']||''):'';
+  const bcRow=document.getElementById('barcode-cs-row');
+  if(csCode){
+    document.getElementById('barcode-cs-val').textContent=csCode;
+    bcRow.style.display='flex';
+  } else {
+    bcRow.style.display='none';
+  }
+
+  /* reset transfer box */
+  document.getElementById('transfer-box').className='transfer-box';
+
   setReqType(type);
   document.getElementById('req-overlay').classList.add('open');
 }
+
 function closeReqModal(){
   document.getElementById('req-overlay').classList.remove('open');
 }
+
 function setReqType(type){
   _reqType=type;
   document.getElementById('req-type-beik').className='req-type-btn'+(type==='เบิก'?' active beik':'');
-  document.getElementById('req-type-sang').className='req-type-btn'+(type==='สั่ง'?' active sang':'');
-  document.getElementById('req-submit').style.background=type==='เบิก'?'#e8a020':'var(--navy)';
-  document.getElementById('req-submit').style.color=type==='เบิก'?'#fff':'var(--gold2)';
-  document.getElementById('req-title').textContent=(type==='เบิก'?'📦 เบิกสินค้า':'🛒 สั่งสินค้า');
+  document.getElementById('req-type-khad').className='req-type-btn'+(type==='สินค้าขาด'?' active khad':'');
+
+  const submit=document.getElementById('req-submit');
+  const transferBox=document.getElementById('transfer-box');
+
+  if(type==='เบิก'){
+    document.getElementById('req-title').textContent='📦 เบิกสินค้า';
+    document.getElementById('req-qty-label').textContent='จำนวนที่เบิก';
+    submit.style.background='#e8a020';submit.style.color='#fff';
+    _renderStockBar('beik');
+    transferBox.classList.remove('visible');
+    /* คำนวณทันทีสำหรับค่าเริ่มต้น qty=1 */
+    calcTransfer();
+  } else if(type==='สินค้าขาด'){
+    document.getElementById('req-title').textContent='🚨 แจ้งสินค้าขาด (ด่วน)';
+    document.getElementById('req-qty-label').textContent='สั่งเพิ่ม';
+    submit.style.background='var(--urgent)';submit.style.color='var(--white)';
+    _renderStockBar('khad');
+    transferBox.classList.remove('visible');
+  }
 }
+
 function adjQty(d){
   const el=document.getElementById('req-qty');
   const v=Math.max(1,Math.min(9999,(parseInt(el.value)||0)+d));
   el.value=v;
+  calcTransfer();
 }
+
+/* คำนวณ live เมื่อพิมพ์จำนวน */
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('req-qty').addEventListener('input',calcTransfer);
+});
 
 async function submitRequest(){
   const qty=parseInt(document.getElementById('req-qty').value)||0;
@@ -1038,7 +1179,7 @@ async function submitRequest(){
     document.getElementById('req-msg').style.color='var(--red)';return;
   }
   if(!CONFIG.APPS_SCRIPT_URL){
-    document.getElementById('req-msg').textContent='⚠️ ยังไม่ได้ตั้งค่า APPS_SCRIPT_URL — ดูคำแนะนำใน CONFIG';
+    document.getElementById('req-msg').textContent='⚠️ ยังไม่ได้ตั้งค่า APPS_SCRIPT_URL';
     document.getElementById('req-msg').style.color='var(--red)';return;
   }
 
@@ -1046,13 +1187,28 @@ async function submitRequest(){
   const now=new Date();
   const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
   const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+  /* คำนวณ transfer สำหรับ payload */
+  const c4=parseInt((r&&r['STOCK C4'])||0)||0;
+  const w4=parseInt((r&&r['STOCK W4'])||0)||0;
+  const fromC4=_reqType==='เบิก'?Math.min(qty,Math.max(0,c4)):0;
+  const fromW4=_reqType==='เบิก'?Math.min(Math.max(0,qty-c4),Math.max(0,w4)):0;
+  const needOrder=_reqType==='เบิก'?Math.max(0,qty-(c4+w4)):0;
+
   const payload={
     date,time,
     name:r?r['PRODUCT NAME']:'',
     codeEA:r?r['CODE EA']:'',
+    codeCS:r?r['CODE CS']:'',          /* บาร์โค้ดลัง */
     qty,
     type:_reqType,
-    user:currentUser?currentUser.name:''
+    user:currentUser?currentUser.name:'',
+    stockC4:(r?r['STOCK C4']:'') ||'—',
+    stockW4:(r?r['STOCK W4']:'') ||'—',
+    /* เฉพาะโหมดเบิก */
+    fromC4:_reqType==='เบิก'?fromC4:'',
+    fromW4:_reqType==='เบิก'?fromW4:'',
+    needOrder:_reqType==='เบิก'?needOrder:'',
   };
 
   document.getElementById('req-submit').disabled=true;
@@ -1062,11 +1218,10 @@ async function submitRequest(){
   try{
     await fetch(CONFIG.APPS_SCRIPT_URL,{
       method:'POST',
-      mode:'no-cors', /* Apps Script ต้องใช้ no-cors */
+      mode:'no-cors',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
-    /* no-cors ไม่มี response body — ถือว่าสำเร็จ */
     document.getElementById('req-msg').textContent='✅ ส่งคำขอสำเร็จ!';
     document.getElementById('req-msg').style.color='var(--green)';
     document.getElementById('req-submit').textContent='ส่งแล้ว ✓';
@@ -1079,7 +1234,6 @@ async function submitRequest(){
   }
 }
 
-/* ปิด modal เมื่อกดนอก sheet */
 document.getElementById('req-overlay').addEventListener('click',function(e){
   if(e.target===this)closeReqModal();
 });
@@ -1088,16 +1242,15 @@ document.getElementById('req-overlay').addEventListener('click',function(e){
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
 
-/* ── mobile login fix: bind ทุก event ที่เป็นไปได้ ── */
 (function bindLogin(){
   const btn=document.getElementById('login-btn');
   btn.addEventListener('click',doLogin);
   btn.addEventListener('touchend',function(e){
-    e.preventDefault(); /* ป้องกัน ghost click บน iOS */
+    e.preventDefault();
     doLogin();
   });
 })();
-/* ══ EXPOSE GLOBALS สำหรับ inline onclick ใน dynamic HTML (mobile safe) ══ */
+
 window.openReqModal=openReqModal;
 window.closeReqModal=closeReqModal;
 window.setReqType=setReqType;
@@ -1108,7 +1261,6 @@ window.pickFuzzy=pickFuzzy;
 window._tapImg=_tapImg;
 window.debugImg=debugImg;
 
-/* ══ EVENT DELEGATION — detail-content (mobile safe, ไม่ใช้ inline onclick) ══ */
 document.getElementById('detail-content').addEventListener('click',function(e){
   const btn=e.target.closest('[data-req]');
   if(btn){openReqModal(btn.dataset.req);}
@@ -1119,17 +1271,18 @@ document.getElementById('detail-content').addEventListener('touchend',function(e
 });
 
 document.getElementById('logout-btn').onclick=doLogout;
-document.getElementById('detail-back').onclick=()=>{clearSearch();show('s-main');};
 
-/* กดกลับจาก scanner → clear search V2 FIX #4 */
+/* ══ V2.1 FIX #3: ปุ่มกลับจาก detail ไม่ clear search แล้ว ══ */
+document.getElementById('detail-back').onclick=()=>{show('s-main');};
+
 document.getElementById('scanner-back').onclick=async()=>{
   await stopScan();
-  clearSearch(); /* ← FIX #4: auto-clear */
+  clearSearch();
   show('s-main');
 };
 document.getElementById('stop-scan').onclick=async()=>{
   await stopScan();
-  clearSearch(); /* ← FIX #4: auto-clear */
+  clearSearch();
   show('s-main');
 };
 
@@ -1142,11 +1295,9 @@ document.getElementById('manual-bc').addEventListener('keydown',e=>{
   if(e.key==='Enter'){const v=e.target.value.trim();if(v){stopScan();onScanFound(v);}}
 });
 
-/* ══ BOOT ══ */
 (function boot(){
   const saved=loadSession();
   if(saved&&saved.username&&saved.role){currentUser=saved;enterApp();}
-  /* ซ่อน torch btn จนกว่าจะรู้ว่ากล้องรองรับ */
   document.getElementById('torch-btn').style.display='none';
 })();
 </script>
