@@ -481,20 +481,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   </div>
   <div class="content has-bnav" id="sc-content" style="padding-bottom:76px">
 
-    <!-- สแกน / พิมพ์บาร์โค้ด -->
+    <!-- ช่องค้นหา + ปุ่มสแกน (เหมือนหน้าค้นหา) -->
     <div class="search-box" style="margin-bottom:12px">
-      <div class="sc-scan-row">
-        <input class="sc-scan-input" id="sc-barcode-input" type="text" inputmode="numeric"
-          placeholder="สแกนหรือพิมพ์บาร์โค้ด..." autocomplete="off">
-        <button class="sc-scan-btn" id="sc-cam-btn" onclick="scStockScan()">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <input class="search-input" id="sc-search-input" type="text" inputmode="search"
+            placeholder="พิมพ์ชื่อหรือบาร์โค้ด..." autocomplete="off">
+          <button class="clear-btn" id="sc-clear-btn">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+        <button class="scan-btn" id="sc-open-scanner">
           <svg viewBox="0 0 24 24"><path d="M1 5h2v14H1zm4 0h2v14H5zm4 0h1v14H9zm3 0h1v14h-1zm3 0h2v14h-2zm4 0h2v14h-2zM0 0v24h24V0H0zm22 22H2V2h20v20z"/></svg>
           สแกน
         </button>
       </div>
-      <div class="search-hint">พิมพ์แล้วกด Enter หรือกด "สแกน" เพื่อใช้กล้อง</div>
+      <div class="search-hint">พิมพ์แล้วโชว์สินค้า → กดเลือกเพื่อนับ</div>
     </div>
 
-    <!-- การ์ดสินค้าที่พบ + กรอกจำนวน -->
+    <!-- ผลการค้นหา (รายการสินค้า) -->
+    <div id="sc-results-area"></div>
+
+    <!-- การ์ดสินค้าที่เลือก + กรอกจำนวน -->
     <div class="sc-found-card" id="sc-found-card">
       <div class="sc-found-name" id="sc-found-name">—</div>
       <div class="sc-found-sub" id="sc-found-sub">—</div>
@@ -507,6 +515,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       </div>
       <div class="sc-msg" id="sc-add-msg"></div>
       <button class="sc-add-btn" id="sc-add-btn" onclick="scAddItem()">➕ เพิ่มในรายการ</button>
+      <button class="req-cancel" onclick="scCancelItem()" style="margin-top:4px">ยกเลิก</button>
     </div>
 
     <!-- รายการที่นับในรอบนี้ -->
@@ -515,7 +524,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <button class="sc-clear-btn" onclick="scClearSession()">ล้างทั้งหมด</button>
     </div>
     <div class="sc-session-list" id="sc-session-list">
-      <div class="sc-empty">ยังไม่มีรายการ — เริ่มสแกนหรือพิมพ์บาร์โค้ด</div>
+      <div class="sc-empty">ยังไม่มีรายการ — เริ่มค้นหาหรือสแกน</div>
     </div>
 
     <!-- บันทึกเข้า Sheet -->
@@ -1083,10 +1092,12 @@ function onScanFound(code){
   if(_scScanMode){
     _scScanMode=false;
     navTo('stock');
-    document.getElementById('sc-barcode-input').value=code;
     const prod=scFindProduct(code);
-    if(prod){scShowFound(prod);}
-    else{scShowMsg('sc-add-msg','❌ ไม่พบบาร์โค้ด: '+code,'var(--red)');}
+    if(prod){scSelectProduct(prod);}
+    else{
+      const area=document.getElementById('sc-results-area');
+      if(area)area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด: '+code+'</div>';
+    }
     return;
   }
   /* ── normal search mode ── */
@@ -1421,23 +1432,83 @@ function scUpdateTopbarSub(){
   document.getElementById('sc-topbar-sub').textContent='นับสต็อค'+(loc?' — '+loc:'');
 }
 
-/* ─ ค้นหาสินค้าจากบาร์โค้ดหรือชื่อ ─ */
+/* ─ ค้นหาสินค้าจากบาร์โค้ด (exact match — สำหรับสแกน) ─ */
 function scFindProduct(q){
   q=(q||'').trim();
   if(!q)return null;
-  /* exact barcode */
   let r=allData.find(r=>BC_COLS.some(k=>(r[k]||'').trim()===q));
   if(r)return r;
-  /* barcode partial */
   r=allData.find(r=>BC_COLS.some(k=>{const v=(r[k]||'').trim();return v&&v.endsWith(q);}));
-  if(r)return r;
-  /* name contains */
-  const ql=q.toLowerCase();
-  r=allData.find(r=>(r['PRODUCT NAME']||'').toLowerCase().includes(ql));
   return r||null;
 }
 
-/* ─ เมื่อสแกนจากกล้อง routing ผ่าน _scScanMode flag ใน onScanFound ─ */
+/* ─ live search: พิมพ์แล้วโชว์รายการ เหมือนหน้าค้นหาหลัก ─ */
+function scDoSearch(raw){
+  const area=document.getElementById('sc-results-area');
+  if(!area)return;
+  if(!raw.trim()){area.innerHTML='';return;}
+  if(!allData.length){area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ยังไม่ได้โหลดข้อมูลสินค้า</div>';return;}
+  const q=raw.trim().toLowerCase();
+  const tokens=q.split(/\s+/).filter(Boolean);
+  const scored=allData.map(r=>{
+    const name=(r['PRODUCT NAME']||'').toLowerCase();
+    const short=(r['SHORT NAME']||'').toLowerCase();
+    const codes=BC_COLS.map(k=>(r[k]||'').toLowerCase());
+    if(codes.some(b=>b===q))return{r,score:100};
+    const allMatch=tokens.every(t=>name.includes(t)||short.includes(t)||codes.some(b=>b.includes(t)));
+    if(!allMatch)return{r,score:0};
+    let s=0;
+    tokens.forEach(t=>{
+      if(name.startsWith(t)||short.startsWith(t))s+=40;
+      else if(name.includes(t)||short.includes(t))s+=20;
+      else s+=5;
+    });
+    return{r,score:s};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,30);
+
+  if(!scored.length){
+    area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบ "'+raw+'"</div>';
+    return;
+  }
+
+  /* ถ้า exact barcode 1 รายการ → เลือกอัตโนมัติเลย */
+  if(scored.length===1&&scored[0].score===100){
+    scSelectProduct(scored[0].r);
+    return;
+  }
+
+  area.innerHTML='<div class="result-count">พบ '+scored.length+' รายการ — กดเพื่อเลือก</div>'+
+    scored.map((x,i)=>{
+      const r=x.r;
+      const name=r['PRODUCT NAME']||'—';
+      const sku=r['CODE EA']||r['CODE CS']||'';
+      const thumbUrl=getThumb(r);
+      const thumb=thumbUrl?`<img src="${thumbUrl}" onerror="this.style.display='none'">`:`${NOIMG}`;
+      return `<div class="list-item" data-sc-idx="${i}">
+        <div class="list-top">
+          <div class="lthumb">${thumb}</div>
+          <div style="flex:1;min-width:0">
+            <div class="lname">${name}</div>
+            <div class="lsku">${sku}</div>
+          </div>
+          <svg class="lchev" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </div>
+      </div>`;
+    }).join('');
+  area.querySelectorAll('[data-sc-idx]').forEach((el,i)=>{
+    el.addEventListener('click',()=>scSelectProduct(scored[i].r));
+  });
+}
+
+/* ─ เลือกสินค้า → เปิดการ์ดกรอกจำนวน ─ */
+function scSelectProduct(prod){
+  document.getElementById('sc-results-area').innerHTML='';
+  const si=document.getElementById('sc-search-input');
+  if(si)si.value='';
+  const cb=document.getElementById('sc-clear-btn');
+  if(cb)cb.classList.remove('visible');
+  scShowFound(prod);
+}
 
 /* ─ UI: แสดงสินค้าที่พบ ─ */
 function scShowFound(prod){
@@ -1450,7 +1521,6 @@ function scShowFound(prod){
   const stockRaw=prod['STOCK C4']||'';
   const systemEA=parseStockToEA(stockRaw,qtyPerCS);
 
-  /* sub line: CODE • Location BC • 1CS=N EA • สต็อกระบบ N EA */
   let subParts=[];
   if(sku)subParts.push(sku);
   if(locC4)subParts.push('📍 '+locC4);
@@ -1470,33 +1540,15 @@ function scShowFound(prod){
 
 function scHideFound(){
   _scCurProd=null;
-  document.getElementById('sc-found-card').classList.remove('visible');
-  document.getElementById('sc-barcode-input').value='';
+  const c=document.getElementById('sc-found-card');
+  if(c)c.classList.remove('visible');
 }
+function scCancelItem(){scHideFound();}
 
-/* ─ ค้นหาจาก input ─ */
-function scSearchBarcode(){
-  const q=document.getElementById('sc-barcode-input').value.trim();
-  if(!q)return;
-  if(!allData.length){scShowMsg('sc-add-msg','⚠️ ยังไม่ได้โหลดข้อมูลสินค้า','var(--red)');return;}
-  const prod=scFindProduct(q);
-  if(prod){
-    scShowFound(prod);
-  } else {
-    scShowMsg('sc-add-msg','❌ ไม่พบสินค้าบาร์โค้ด: '+q,'var(--red)');
-    document.getElementById('sc-found-card').classList.remove('visible');
-    _scCurProd=null;
-  }
+function scStockScan(){
+  _scScanMode=true;
+  show('s-scanner');startScan();
 }
-
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('sc-barcode-input').addEventListener('keydown',function(e){
-    if(e.key==='Enter'){scSearchBarcode();}
-  });
-  document.getElementById('sc-qty').addEventListener('input',()=>{
-    document.getElementById('sc-add-msg').textContent='';
-  });
-});
 
 function scAdjQty(d){
   const el=document.getElementById('sc-qty');
@@ -1706,6 +1758,42 @@ document.getElementById('manual-search-btn').onclick=()=>{
 document.getElementById('manual-bc').addEventListener('keydown',e=>{
   if(e.key==='Enter'){const v=e.target.value.trim();if(v){stopScan();onScanFound(v);}}
 });
+
+/* ── STOCK COUNT page bindings ── */
+(function bindStockCount(){
+  const si=document.getElementById('sc-search-input');
+  const cb=document.getElementById('sc-clear-btn');
+  const os=document.getElementById('sc-open-scanner');
+  if(si){
+    let _scTimer;
+    si.addEventListener('input',function(){
+      const v=this.value;
+      if(cb)cb.classList.toggle('visible',v.length>0);
+      clearTimeout(_scTimer);
+      _scTimer=setTimeout(()=>scDoSearch(v),250);
+    });
+  }
+  if(cb){
+    cb.addEventListener('click',()=>{
+      if(si)si.value='';
+      cb.classList.remove('visible');
+      document.getElementById('sc-results-area').innerHTML='';
+    });
+  }
+  if(os){
+    os.addEventListener('click',scStockScan);
+  }
+  const sq=document.getElementById('sc-qty');
+  if(sq){
+    sq.addEventListener('input',()=>{
+      const m=document.getElementById('sc-add-msg');
+      if(m)m.textContent='';
+    });
+  }
+})();
+
+window.scCancelItem=scCancelItem;
+window.scSelectProduct=scSelectProduct;
 
 (function boot(){
   const saved=loadSession();
