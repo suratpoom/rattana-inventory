@@ -301,7 +301,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sc-qty-input:focus{border-color:var(--navy2)}
 .sc-qty-minus,.sc-qty-plus{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--white);font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--navy);flex-shrink:0}
 .sc-qty-minus:active,.sc-qty-plus:active{background:var(--light)}
-.sc-unit-chip{font-size:12px;color:var(--muted);background:var(--light);border-radius:20px;padding:3px 10px;font-weight:600;flex-shrink:0}
+.sc-unit-chip{font-size:12px;color:var(--muted);background:var(--light);border-radius:20px;padding:3px 10px;font-weight:600;flex-shrink:0;text-align:center}
+.sc-unit-btn{flex:1;min-width:60px;border:2px solid var(--border);background:var(--white);border-radius:8px;padding:6px 8px;cursor:pointer;color:var(--muted);transition:all .15s}
+.sc-unit-btn.active{border-color:var(--navy);background:var(--navy);color:var(--gold2)}
+.sc-unit-btn:active{opacity:.85}
 .sc-add-btn{width:100%;padding:13px;border:none;border-radius:var(--rsm);background:var(--navy);color:var(--gold2);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:4px}
 .sc-add-btn:active{opacity:.85}
 .sc-add-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -506,13 +509,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <div class="sc-found-card" id="sc-found-card">
       <div class="sc-found-name" id="sc-found-name">—</div>
       <div class="sc-found-sub" id="sc-found-sub">—</div>
+
+      <!-- ปุ่มสลับหน่วย EA/PA/BP/CS -->
+      <div id="sc-unit-switcher" style="margin-top:10px;margin-bottom:10px"></div>
+
       <div class="sc-qty-row">
-        <span class="sc-qty-label">นับได้</span>
+        <span class="sc-qty-label">จำนวน</span>
         <button class="sc-qty-minus" onclick="scAdjQty(-1)">−</button>
         <input class="sc-qty-input" id="sc-qty" type="number" min="0" value="0" inputmode="numeric">
         <button class="sc-qty-plus" onclick="scAdjQty(1)">+</button>
-        <span class="sc-unit-chip" id="sc-unit-chip">EA</span>
+        <span class="sc-unit-chip" id="sc-unit-chip">CS</span>
       </div>
+
+      <!-- preview EA ที่คำนวณได้ -->
+      <div id="sc-ea-preview" style="text-align:center;font-size:14px;color:var(--muted);margin-bottom:10px;display:none">—</div>
+
       <div class="sc-msg" id="sc-add-msg"></div>
       <button class="sc-add-btn" id="sc-add-btn" onclick="scAddItem()">➕ เพิ่มในรายการ</button>
       <button class="req-cancel" onclick="scCancelItem()" style="margin-top:4px">ยกเลิก</button>
@@ -1092,8 +1103,8 @@ function onScanFound(code){
   if(_scScanMode){
     _scScanMode=false;
     navTo('stock');
-    const prod=scFindProduct(code);
-    if(prod){scSelectProduct(prod);}
+    const hit=scFindProduct(code);
+    if(hit){scSelectProduct(hit.prod,hit.unit);}
     else{
       const area=document.getElementById('sc-results-area');
       if(area)area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด: '+code+'</div>';
@@ -1426,20 +1437,35 @@ function navTo(page){
 /* ══ STOCK COUNT ══ */
 let _scSession=[];      /* [{prod, qtyEA, systemEA, diff, time}] */
 let _scCurProd=null;
+let _scCurUnit='CS';
+let _scCurMultipliers={EA:1,PA:1,BP:1,CS:1};
 
 function scUpdateTopbarSub(){
   const loc=CONFIG.LOCATION||'';
   document.getElementById('sc-topbar-sub').textContent='นับสต็อค'+(loc?' — '+loc:'');
 }
 
-/* ─ ค้นหาสินค้าจากบาร์โค้ด (exact match — สำหรับสแกน) ─ */
+/* ─ ค้นหาสินค้าจากบาร์โค้ด + detect หน่วย (EA/PA/BP/CS) ─ */
 function scFindProduct(q){
   q=(q||'').trim();
   if(!q)return null;
-  let r=allData.find(r=>BC_COLS.some(k=>(r[k]||'').trim()===q));
-  if(r)return r;
-  r=allData.find(r=>BC_COLS.some(k=>{const v=(r[k]||'').trim();return v&&v.endsWith(q);}));
-  return r||null;
+  /* exact barcode match — return พร้อมหน่วยที่ตรงกับบาร์โค้ด */
+  for(const col of BC_COLS){
+    const r=allData.find(rr=>(rr[col]||'').trim()===q);
+    if(r){
+      const unit=col.replace('CODE ','').trim(); /* 'CODE EA' → 'EA' */
+      return {prod:r,unit};
+    }
+  }
+  /* ends-with fallback */
+  for(const col of BC_COLS){
+    const r=allData.find(rr=>{const v=(rr[col]||'').trim();return v&&v.endsWith(q);});
+    if(r){
+      const unit=col.replace('CODE ','').trim();
+      return {prod:r,unit};
+    }
+  }
+  return null;
 }
 
 /* ─ live search: พิมพ์แล้วโชว์รายการ เหมือนหน้าค้นหาหลัก ─ */
@@ -1448,13 +1474,21 @@ function scDoSearch(raw){
   if(!area)return;
   if(!raw.trim()){area.innerHTML='';return;}
   if(!allData.length){area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ยังไม่ได้โหลดข้อมูลสินค้า</div>';return;}
-  const q=raw.trim().toLowerCase();
-  const tokens=q.split(/\s+/).filter(Boolean);
+  const q=raw.trim();
+  const ql=q.toLowerCase();
+
+  /* ── ถ้าพิมพ์บาร์โค้ดตรงๆ → detect unit และเลือกอัตโนมัติ ── */
+  if(/^\d{4,}$/.test(q)){
+    const hit=scFindProduct(q);
+    if(hit){scSelectProduct(hit.prod,hit.unit);return;}
+  }
+
+  const tokens=ql.split(/\s+/).filter(Boolean);
   const scored=allData.map(r=>{
     const name=(r['PRODUCT NAME']||'').toLowerCase();
     const short=(r['SHORT NAME']||'').toLowerCase();
     const codes=BC_COLS.map(k=>(r[k]||'').toLowerCase());
-    if(codes.some(b=>b===q))return{r,score:100};
+    if(codes.some(b=>b===ql))return{r,score:100};
     const allMatch=tokens.every(t=>name.includes(t)||short.includes(t)||codes.some(b=>b.includes(t)));
     if(!allMatch)return{r,score:0};
     let s=0;
@@ -1471,13 +1505,7 @@ function scDoSearch(raw){
     return;
   }
 
-  /* ถ้า exact barcode 1 รายการ → เลือกอัตโนมัติเลย */
-  if(scored.length===1&&scored[0].score===100){
-    scSelectProduct(scored[0].r);
-    return;
-  }
-
-  area.innerHTML='<div class="result-count">พบ '+scored.length+' รายการ — กดเพื่อเลือก</div>'+
+  area.innerHTML='<div class="result-count">พบ '+scored.length+' รายการ — กดเพื่อเลือก (ค่าเริ่มต้น: CS)</div>'+
     scored.map((x,i)=>{
       const r=x.r;
       const name=r['PRODUCT NAME']||'—';
@@ -1496,46 +1524,104 @@ function scDoSearch(raw){
       </div>`;
     }).join('');
   area.querySelectorAll('[data-sc-idx]').forEach((el,i)=>{
-    el.addEventListener('click',()=>scSelectProduct(scored[i].r));
+    el.addEventListener('click',()=>scSelectProduct(scored[i].r,'CS')); /* default CS */
   });
 }
 
 /* ─ เลือกสินค้า → เปิดการ์ดกรอกจำนวน ─ */
-function scSelectProduct(prod){
+function scSelectProduct(prod,unit){
   document.getElementById('sc-results-area').innerHTML='';
   const si=document.getElementById('sc-search-input');
   if(si)si.value='';
   const cb=document.getElementById('sc-clear-btn');
   if(cb)cb.classList.remove('visible');
-  scShowFound(prod);
+  scShowFound(prod,unit||'CS');
 }
 
-/* ─ UI: แสดงสินค้าที่พบ ─ */
-function scShowFound(prod){
+/* ─ UI: แสดงสินค้าที่พบ + หน่วยที่สแกนมา ─ */
+function scShowFound(prod,unit){
   _scCurProd=prod;
+  _scCurUnit=unit||'CS';
   const name=prod['PRODUCT NAME']||'—';
   const sku=prod['CODE EA']||prod['CODE CS']||'';
   const qtyPerCS=safeInt(prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
   const qtyPerPA=safeInt(prod['QTY/PA']||prod['QTY PA']||'0');
+  const qtyPerBP=safeInt(prod['QTY/BP']||prod['QTY BP']||'0');
   const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';
   const stockRaw=prod['STOCK C4']||'';
   const systemEA=parseStockToEA(stockRaw,qtyPerCS);
 
+  /* เก็บ multiplier ไว้ใน element เพื่อคำนวณตอน add */
+  _scCurMultipliers={EA:1,PA:qtyPerPA||1,BP:qtyPerBP||1,CS:qtyPerCS||1};
+
   let subParts=[];
   if(sku)subParts.push(sku);
   if(locC4)subParts.push('📍 '+locC4);
-  subParts.push('1 CS = '+qtyPerCS+' EA');
-  if(qtyPerPA)subParts.push('1 PA = '+qtyPerPA+' EA');
   subParts.push('สต็อกระบบ: '+systemEA+' EA');
 
   document.getElementById('sc-found-name').textContent=name;
-  document.getElementById('sc-found-sub').textContent=subParts.join(' • ');
-  document.getElementById('sc-unit-chip').textContent='EA';
+  document.getElementById('sc-found-sub').innerHTML=subParts.join(' • ');
+
+  /* ── unit chip แสดงหน่วยและตัวคูณ ── */
+  const mult=_scCurMultipliers[_scCurUnit]||1;
+  const unitChip=document.getElementById('sc-unit-chip');
+  unitChip.innerHTML=`${_scCurUnit}<br><span style="font-size:9px;font-weight:400;opacity:.7">×${mult} EA</span>`;
+  unitChip.style.lineHeight='1.1';
+  unitChip.style.padding='5px 10px';
+
+  /* ── แสดง badge หน่วยอื่นให้สลับได้ ── */
+  scRenderUnitSwitcher(qtyPerCS,qtyPerPA,qtyPerBP);
+
   document.getElementById('sc-qty').value='0';
   document.getElementById('sc-add-msg').textContent='';
   document.getElementById('sc-found-card').classList.add('visible');
   document.getElementById('sc-add-btn').disabled=false;
   setTimeout(()=>document.getElementById('sc-qty').focus(),100);
+}
+
+/* ─ แสดงปุ่มสลับหน่วย EA/PA/BP/CS ─ */
+function scRenderUnitSwitcher(qCS,qPA,qBP){
+  const box=document.getElementById('sc-unit-switcher');
+  if(!box)return;
+  const units=[
+    {u:'EA',m:1,label:'1 EA = 1 EA'},
+    qPA>0?{u:'PA',m:qPA,label:'1 PA = '+qPA+' EA'}:null,
+    qBP>0?{u:'BP',m:qBP,label:'1 BP = '+qBP+' EA'}:null,
+    {u:'CS',m:qCS||1,label:'1 CS = '+(qCS||1)+' EA'}
+  ].filter(Boolean);
+  box.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">เลือกหน่วย</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+    units.map(x=>`<button type="button" class="sc-unit-btn ${x.u===_scCurUnit?'active':''}" data-unit="${x.u}" data-mult="${x.m}">
+      <div style="font-size:13px;font-weight:700">${x.u}</div>
+      <div style="font-size:9px;opacity:.8">${x.label}</div>
+    </button>`).join('')+'</div>';
+  box.querySelectorAll('.sc-unit-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      _scCurUnit=this.dataset.unit;
+      box.querySelectorAll('.sc-unit-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      const mult=_scCurMultipliers[_scCurUnit]||1;
+      const uc=document.getElementById('sc-unit-chip');
+      uc.innerHTML=`${_scCurUnit}<br><span style="font-size:9px;font-weight:400;opacity:.7">×${mult} EA</span>`;
+      scUpdateLivePreview();
+    });
+  });
+  scUpdateLivePreview();
+}
+
+/* ─ แสดง preview จำนวน EA ที่คำนวณได้ ─ */
+function scUpdateLivePreview(){
+  const el=document.getElementById('sc-ea-preview');
+  if(!el)return;
+  const qty=parseInt(document.getElementById('sc-qty').value)||0;
+  const mult=_scCurMultipliers[_scCurUnit]||1;
+  const total=qty*mult;
+  if(qty>0){
+    el.innerHTML=`= <b style="color:var(--navy);font-size:18px">${total.toLocaleString('th-TH')}</b> <span style="font-size:11px">EA</span>`;
+    el.style.display='block';
+  } else {
+    el.style.display='none';
+  }
 }
 
 function scHideFound(){
@@ -1553,6 +1639,7 @@ function scStockScan(){
 function scAdjQty(d){
   const el=document.getElementById('sc-qty');
   el.value=Math.max(0,(parseInt(el.value)||0)+d);
+  scUpdateLivePreview();
 }
 
 function scShowMsg(elId,msg,color){
@@ -1584,36 +1671,44 @@ function safeInt(v){
 /* ─ เพิ่มรายการเข้า session ─ */
 function scAddItem(){
   if(!_scCurProd){return;}
-  const qtyEA=parseInt(document.getElementById('sc-qty').value)||0;
-  if(qtyEA<0){scShowMsg('sc-add-msg','❌ จำนวนต้องไม่ติดลบ','var(--red)');return;}
+  const qtyInput=parseInt(document.getElementById('sc-qty').value)||0;
+  if(qtyInput<=0){scShowMsg('sc-add-msg','❌ กรุณากรอกจำนวนมากกว่า 0','var(--red)');return;}
 
   const prod=_scCurProd;
+  const unit=_scCurUnit||'CS';
+  const mult=_scCurMultipliers[unit]||1;
+  /* คำนวณเป็น EA: เช่น 2 CS × 36 = 72 EA */
+  const qtyEA=qtyInput*mult;
+
   const name=prod['PRODUCT NAME']||'—';
   const codeEA=prod['CODE EA']||'';
-  /* QTY/CS = EA per carton, QTY/PA = EA per pack */
   const qtyPerCS=safeInt(prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
-  const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';  /* Location ใน C4 */
+  const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';
 
-  /* สต็อกระบบ — parse format 5.12 (5CS 12EA) → EA */
   const systemEA=parseStockToEA(prod['STOCK C4'],qtyPerCS);
 
   const diff=qtyEA-systemEA;
   const now=new Date();
   const timeStr=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-  /* ถ้าสินค้าซ้ำ ให้รวมยอด */
+  /* ถ้าสินค้าซ้ำ ให้รวมยอด EA */
   const existing=_scSession.find(x=>x.codeEA===codeEA&&codeEA!=='');
   if(existing){
     existing.qtyEA+=qtyEA;
     existing.diff=existing.qtyEA-existing.systemEA;
     existing.time=timeStr;
+    /* track entries */
+    existing.entries=(existing.entries||[]).concat([{qty:qtyInput,unit,mult,ea:qtyEA}]);
   } else {
-    _scSession.push({name,codeEA,qtyPerCS,qtyEA,systemEA,diff,time:timeStr,locC4,prod});
+    _scSession.push({
+      name,codeEA,qtyPerCS,qtyEA,systemEA,diff,time:timeStr,locC4,prod,
+      entries:[{qty:qtyInput,unit,mult,ea:qtyEA}]
+    });
   }
 
-  scShowMsg('sc-add-msg','✅ เพิ่ม '+name+' ('+qtyEA+' EA) แล้ว','var(--green)');
+  scShowMsg('sc-add-msg','✅ '+qtyInput+' '+unit+' = '+qtyEA+' EA เพิ่มแล้ว','var(--green)');
   scRenderSession();
-  scHideFound();
+  setTimeout(()=>scHideFound(),600);
 }
 
 /* ─ render รายการ session ─ */
@@ -1788,6 +1883,7 @@ document.getElementById('manual-bc').addEventListener('keydown',e=>{
     sq.addEventListener('input',()=>{
       const m=document.getElementById('sc-add-msg');
       if(m)m.textContent='';
+      scUpdateLivePreview();
     });
   }
 })();
