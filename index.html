@@ -624,6 +624,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   </div>
 </div>
 
+<!-- ── MODAL แก้ไขรายการนับสต็อค ── -->
+<div class="req-overlay" id="sc-edit-overlay">
+  <div class="req-sheet">
+    <span class="req-handle"></span>
+    <div class="req-title">แก้ไขรายการ</div>
+    <div class="req-product" id="sc-edit-name" style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px">—</div>
+    <div id="sc-edit-total" style="text-align:center;padding:10px;background:var(--light);border-radius:8px;margin-bottom:14px;font-size:13px;color:var(--muted)">—</div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">รายการที่เพิ่มไว้ (กด 🗑️ เพื่อลบทีละอัน)</div>
+    <div id="sc-edit-entries" style="margin-bottom:16px;max-height:280px;overflow-y:auto"></div>
+
+    <button class="req-submit" style="background:var(--urgent);color:white" onclick="scDeleteItem()">🗑️ ลบรายการนี้ทั้งหมด</button>
+    <button class="req-cancel" onclick="scCloseEditModal()">ปิด</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
@@ -1726,12 +1742,15 @@ function scRenderSession(){
     const diffClass=item.diff>0?'sc-ok':item.diff<0?'sc-minus':'';
     const diffSign=item.diff>0?'+':'';
     const locBadge=item.locC4?`<span style="font-size:10px;color:var(--muted);margin-left:4px">📍${item.locC4}</span>`:'';
+    /* สรุป entries — แสดงเป็น "2CS + 1PA + 5EA" */
+    const entriesSummary=(item.entries||[]).map(e=>e.qty+e.unit).join(' + ');
     return `
-    <div class="sc-session-item">
+    <div class="sc-session-item" data-sc-item-idx="${i}" style="cursor:pointer">
       <div class="sc-si-top">
         <div class="sc-si-name">${item.name}${locBadge}</div>
-        <div class="sc-si-time">${item.time}</div>
+        <div class="sc-si-time">${item.time} ✏️</div>
       </div>
+      ${entriesSummary?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${entriesSummary}</div>`:''}
       <div class="sc-si-grid">
         <div class="sc-si-cell">
           <div class="sc-si-label">นับได้ (EA)</div>
@@ -1748,6 +1767,78 @@ function scRenderSession(){
       </div>
     </div>`;
   }).join('');
+
+  /* bind click → open edit modal */
+  list.querySelectorAll('[data-sc-item-idx]').forEach(el=>{
+    el.addEventListener('click',()=>scOpenEditModal(parseInt(el.dataset.scItemIdx)));
+  });
+}
+
+/* ─ เปิด modal แก้ไขรายการ ─ */
+let _scEditIdx=-1;
+function scOpenEditModal(idx){
+  if(idx<0||idx>=_scSession.length)return;
+  _scEditIdx=idx;
+  scRenderEditModal();
+  document.getElementById('sc-edit-overlay').classList.add('open');
+}
+function scCloseEditModal(){
+  _scEditIdx=-1;
+  document.getElementById('sc-edit-overlay').classList.remove('open');
+}
+function scRenderEditModal(){
+  if(_scEditIdx<0)return;
+  const item=_scSession[_scEditIdx];
+  if(!item){scCloseEditModal();return;}
+
+  document.getElementById('sc-edit-name').textContent=item.name;
+  document.getElementById('sc-edit-total').innerHTML=`รวม: <b style="color:var(--navy);font-size:18px">${item.qtyEA.toLocaleString('th-TH')}</b> EA`;
+
+  /* render entries */
+  const el=document.getElementById('sc-edit-entries');
+  const entries=item.entries||[];
+  if(!entries.length){
+    el.innerHTML='<div class="sc-empty" style="padding:12px 0">ไม่มีข้อมูล</div>';
+    return;
+  }
+  el.innerHTML=entries.map((e,i)=>`
+    <div style="background:var(--light);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--navy)">${e.qty} ${e.unit}</div>
+        <div style="font-size:11px;color:var(--muted)">×${e.mult} = ${e.ea.toLocaleString('th-TH')} EA</div>
+      </div>
+      <button onclick="scDeleteEntry(${i})" style="background:var(--urgent);color:white;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">🗑️ ลบ</button>
+    </div>
+  `).join('');
+}
+
+/* ─ ลบ entry ที่เฉพาะในรายการ ─ */
+function scDeleteEntry(entryIdx){
+  if(_scEditIdx<0)return;
+  const item=_scSession[_scEditIdx];
+  if(!item||!item.entries||entryIdx<0||entryIdx>=item.entries.length)return;
+  item.entries.splice(entryIdx,1);
+  /* คำนวณ qtyEA ใหม่ */
+  item.qtyEA=item.entries.reduce((s,e)=>s+e.ea,0);
+  item.diff=item.qtyEA-item.systemEA;
+  /* ถ้าไม่มี entry เหลือ → ลบทั้งรายการ */
+  if(item.entries.length===0){
+    _scSession.splice(_scEditIdx,1);
+    scRenderSession();
+    scCloseEditModal();
+    return;
+  }
+  scRenderSession();
+  scRenderEditModal();
+}
+
+/* ─ ลบทั้งรายการ ─ */
+function scDeleteItem(){
+  if(_scEditIdx<0)return;
+  if(!confirm('ลบรายการ "'+_scSession[_scEditIdx].name+'" ทั้งหมด?'))return;
+  _scSession.splice(_scEditIdx,1);
+  scRenderSession();
+  scCloseEditModal();
 }
 
 function scClearSession(){
@@ -1890,6 +1981,15 @@ document.getElementById('manual-bc').addEventListener('keydown',e=>{
 
 window.scCancelItem=scCancelItem;
 window.scSelectProduct=scSelectProduct;
+window.scOpenEditModal=scOpenEditModal;
+window.scCloseEditModal=scCloseEditModal;
+window.scDeleteEntry=scDeleteEntry;
+window.scDeleteItem=scDeleteItem;
+
+/* close edit modal on backdrop click */
+document.getElementById('sc-edit-overlay').addEventListener('click',function(e){
+  if(e.target===this)scCloseEditModal();
+});
 
 (function boot(){
   const saved=loadSession();
