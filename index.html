@@ -1366,7 +1366,7 @@ async function submitRequest(){
     qty,
     type:_reqType,
     user:currentUser?currentUser.name:'',
-    locC4:(r?r['BC']||r['LOCATION']||r['LOC']:'') ||'',  /* Location สินค้าใน C4 (column BC) */
+    locC4:(r?(r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']):'') ||'',  /* Location สินค้าใน C4 */
     branch:CONFIG.LOCATION||'',        /* สาขา */
     stockC4:safeStockStr(r?r['STOCK C4']:''),
     stockW4:safeStockStr(r?r['STOCK W4']:''),
@@ -1517,7 +1517,7 @@ function scShowFound(prod){
   const sku=prod['CODE EA']||prod['CODE CS']||'';
   const qtyPerCS=safeInt(prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
   const qtyPerPA=safeInt(prod['QTY/PA']||prod['QTY PA']||'0');
-  const locC4=prod['BC']||prod['LOCATION']||prod['LOC']||'';
+  const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';
   const stockRaw=prod['STOCK C4']||'';
   const systemEA=parseStockToEA(stockRaw,qtyPerCS);
 
@@ -1592,7 +1592,7 @@ function scAddItem(){
   const codeEA=prod['CODE EA']||'';
   /* QTY/CS = EA per carton, QTY/PA = EA per pack */
   const qtyPerCS=safeInt(prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
-  const locC4=prod['BC']||prod['LOCATION']||prod['LOC']||'';  /* Location ใน C4 */
+  const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';  /* Location ใน C4 */
 
   /* สต็อกระบบ — parse format 5.12 (5CS 12EA) → EA */
   const systemEA=parseStockToEA(prod['STOCK C4'],qtyPerCS);
