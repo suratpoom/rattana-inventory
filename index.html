@@ -330,6 +330,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .sc-commit-btn:disabled{opacity:.4;cursor:not-allowed}
 .sc-commit-msg{font-size:13px;text-align:center;min-height:18px;font-weight:500;margin-bottom:6px}
 .sc-empty{text-align:center;color:var(--muted);font-size:13px;padding:24px 0}
+
+/* ══ HISTORY PAGE ══ */
+.hist-item{background:var(--white);border-radius:var(--rsm);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--border)}
+.hist-item.hist-beik{border-left-color:#e8a020}
+.hist-item.hist-khad{border-left-color:var(--urgent)}
+.hist-item.hist-count{border-left-color:#1a7a4a}
+.hist-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:8px}
+.hist-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0;text-transform:uppercase;letter-spacing:.3px}
+.hist-tag.tag-beik{background:#fff4e8;color:#8a4a00}
+.hist-tag.tag-khad{background:var(--urgent);color:var(--white)}
+.hist-tag.tag-count{background:#e0f0e8;color:var(--green)}
+.hist-time{font-size:10px;color:var(--muted);flex-shrink:0}
+.hist-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;line-height:1.3}
+.hist-detail{font-size:12px;color:var(--muted);line-height:1.5}
+.hist-detail b{color:var(--navy);font-weight:700}
 </style>
 </head>
 <body>
@@ -466,6 +481,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
     <span>นับสต็อค</span>
   </button>
+  <button class="bnav-item" id="bnav-hist" onclick="navTo('hist')">
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8H12z"/></svg>
+    <span>ประวัติ</span>
+  </button>
 </nav>
 
 <!-- ══ SCREEN: นับสต็อค ══ -->
@@ -542,6 +561,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <!-- บันทึกเข้า Sheet -->
     <div class="sc-commit-msg" id="sc-commit-msg"></div>
     <button class="sc-commit-btn" id="sc-commit-btn" onclick="scCommit()" disabled>💾 บันทึกลง Sheet (นับสต็อค)</button>
+
+  </div>
+</div>
+
+<!-- ══ SCREEN: ประวัติ ══ -->
+<div id="s-hist" class="screen has-bnav">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8" onerror="this.style.display='none'" alt="">
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="topbar-title">ประวัติวันนี้</div>
+      <div class="topbar-sub" id="hist-topbar-sub">ตรวจสอบว่าข้อมูลเข้าแล้ว</div>
+    </div>
+    <div class="user-chip">
+      <span class="chip-name" id="hist-chip-name"></span>
+      <span class="role-badge" id="hist-chip-role"></span>
+    </div>
+  </div>
+  <div class="content has-bnav" id="hist-content">
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="scan-btn" id="hist-refresh-btn" onclick="histRefresh()" style="flex:1;justify-content:center">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        รีเฟรชข้อมูล
+      </button>
+    </div>
+
+    <div class="sbar" id="hist-status">
+      <div class="sdot"></div>
+      <span id="hist-status-text">กดปุ่มรีเฟรชเพื่อดึงข้อมูลวันนี้</span>
+    </div>
+
+    <div id="hist-list"></div>
 
   </div>
 </div>
@@ -695,8 +748,8 @@ function loadSession(){try{return JSON.parse(localStorage.getItem(CONFIG.SESSION
 function clearSession(){try{localStorage.removeItem(CONFIG.SESSION_KEY);}catch(e){}}
 function updateChips(){
   const n=currentUser?currentUser.name:'';const r=currentUser?'Role '+currentUser.role:'';
-  ['chip-name','dchip-name','sc-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
-  ['chip-role','dchip-role','sc-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
+  ['chip-name','dchip-name','sc-chip-name','hist-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
+  ['chip-role','dchip-role','sc-chip-role','hist-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
 }
 
 /* ══ AUTH ══ */
@@ -1447,6 +1500,11 @@ function navTo(page){
     document.getElementById('bnav-stock').classList.add('active');
     show('s-stock');
     scUpdateTopbarSub();
+  } else if(page==='hist'){
+    document.getElementById('bnav-hist').classList.add('active');
+    show('s-hist');
+    /* auto-refresh ครั้งแรก ถ้ายังไม่เคยโหลด */
+    if(!_histLoadedOnce){histRefresh();}
   }
 }
 
@@ -1894,6 +1952,131 @@ async function scCommit(){
   },2500);
 }
 
+/* ══ HISTORY — ดึงข้อมูลจาก 2 tab แล้วโชว์รวมวันนี้ ══ */
+let _histLoadedOnce=false;
+
+function _histSetStatus(msg,state){
+  const dot=document.querySelector('#hist-status .sdot');
+  if(dot)dot.className='sdot'+(state?' '+state:'');
+  const t=document.getElementById('hist-status-text');
+  if(t)t.textContent=msg;
+}
+
+/* format วันที่วันนี้ ให้ตรงกับที่ GAS เขียนลง Sheet (th-TH, 2-digit) */
+function _histTodayStr(){
+  const now=new Date();
+  return now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+async function histRefresh(){
+  const btn=document.getElementById('hist-refresh-btn');
+  if(btn)btn.disabled=true;
+  _histSetStatus('กำลังดึงข้อมูล...','loading');
+  document.getElementById('hist-list').innerHTML='';
+
+  const today=_histTodayStr();
+  let beikRows=[], countRows=[];
+
+  try{
+    beikRows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.REQUEST_TAB).catch(()=>[]);
+  }catch(e){}
+  try{
+    countRows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.STOCK_COUNT_TAB).catch(()=>[]);
+  }catch(e){}
+
+  /* กรองเฉพาะวันนี้ + map เป็น unified format */
+  const allItems=[];
+
+  beikRows.forEach(r=>{
+    const d=(r['วันที่']||'').trim();
+    if(d!==today)return;
+    allItems.push({
+      kind:(r['ประเภท']||'').includes('ขาด')?'khad':'beik',
+      time:r['เวลา']||'',
+      name:r['ชื่อสินค้า']||'—',
+      codeEA:r['CODE EA']||'',
+      qty:r['จำนวน (CS)']||r['จำนวน']||'',
+      type:r['ประเภท']||'',
+      user:r['ผู้แจ้ง']||r['ผู้ขอ']||'',
+      locC4:r['Location C4']||'',
+      stockC4:r['สต็อก C4']||'',
+      stockW4:r['สต็อก W4']||'',
+      extra:null
+    });
+  });
+
+  countRows.forEach(r=>{
+    const d=(r['วันที่']||'').trim();
+    if(d!==today)return;
+    allItems.push({
+      kind:'count',
+      time:r['เวลา']||'',
+      name:r['ชื่อสินค้า']||'—',
+      codeEA:r['CODE EA']||'',
+      qty:r['นับได้ (EA)']||'',
+      type:'นับสต็อค',
+      user:r['ผู้นับ']||'',
+      locC4:r['Location C4']||'',
+      systemEA:r['ระบบ (EA)']||'',
+      diffEA:r['ขาด/เกิน (EA)']||'',
+      qtyPerCS:r['QTY/CS']||''
+    });
+  });
+
+  /* sort ใหม่ล่าสุดก่อน */
+  allItems.sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+
+  _histRenderList(allItems);
+  _histLoadedOnce=true;
+  if(btn)btn.disabled=false;
+
+  if(!allItems.length){
+    _histSetStatus('วันนี้ ('+today+') ยังไม่มีรายการ','');
+  } else {
+    _histSetStatus('ข้อมูลวันนี้ ('+today+') พบ '+allItems.length+' รายการ','ok');
+  }
+}
+
+function _histRenderList(items){
+  const list=document.getElementById('hist-list');
+  if(!items.length){list.innerHTML='';return;}
+  list.innerHTML=items.map(it=>{
+    const tag=it.kind==='khad'?'<span class="hist-tag tag-khad">🚨 สินค้าขาด</span>'
+             :it.kind==='beik'?'<span class="hist-tag tag-beik">📦 เบิก</span>'
+             :'<span class="hist-tag tag-count">✅ นับสต็อค</span>';
+    const cls=it.kind==='khad'?'hist-khad':it.kind==='beik'?'hist-beik':'hist-count';
+    const loc=it.locC4?` • 📍${it.locC4}`:'';
+
+    let detail='';
+    if(it.kind==='count'){
+      const diff=parseInt(it.diffEA||'0')||0;
+      const diffColor=diff>0?'var(--green)':diff<0?'var(--urgent)':'var(--muted)';
+      const diffSign=diff>0?'+':'';
+      detail=`นับได้: <b>${it.qty}</b> EA • ระบบ: ${it.systemEA} EA • ขาด/เกิน: <b style="color:${diffColor}">${diffSign}${diff}</b> EA`;
+    } else {
+      detail=`จำนวน: <b>${it.qty}</b> CS`;
+      if(it.stockC4)detail+=` • สต็อก C4: ${it.stockC4}`;
+    }
+
+    return `
+    <div class="hist-item ${cls}">
+      <div class="hist-top">
+        <div style="flex:1;min-width:0">
+          <div style="margin-bottom:4px">${tag}</div>
+          <div class="hist-name">${it.name}</div>
+        </div>
+        <div class="hist-time">${it.time}</div>
+      </div>
+      <div class="hist-detail">
+        ${detail}<br>
+        ${it.codeEA?`<span style="font-family:monospace;font-size:11px">${it.codeEA}</span>${loc}`:loc.replace(' • ','')}
+        ${it.user?` • โดย: <b>${it.user}</b>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.histRefresh=histRefresh;
 window.navTo=navTo;
 window.scStockScan=scStockScan;
 window.scAdjQty=scAdjQty;
