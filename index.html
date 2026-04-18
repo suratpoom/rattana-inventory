@@ -345,6 +345,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .hist-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;line-height:1.3}
 .hist-detail{font-size:12px;color:var(--muted);line-height:1.5}
 .hist-detail b{color:var(--navy);font-weight:700}
+.hist-chip{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-weight:600;transition:all .15s}
+.hist-chip.active{background:var(--navy);border-color:var(--navy);color:var(--gold2)}
+.hist-chip:active{opacity:.8}
 </style>
 </head>
 <body>
@@ -582,11 +585,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   </div>
   <div class="content has-bnav" id="hist-content">
 
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
       <button class="scan-btn" id="hist-refresh-btn" onclick="histRefresh()" style="flex:1;justify-content:center">
         <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
         รีเฟรชข้อมูล
       </button>
+    </div>
+
+    <!-- Search + Filters -->
+    <div class="search-box" style="margin-bottom:10px;padding:10px 12px">
+      <div class="search-input-wrap" style="margin-bottom:8px">
+        <input class="search-input" id="hist-search" type="text" inputmode="search"
+          placeholder="ค้นหา (ชื่อสินค้า, บาร์โค้ด, location)..." autocomplete="off">
+        <button class="clear-btn" id="hist-clear-btn">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <!-- User filter dropdown -->
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">ผู้ทำ:</span>
+        <select id="hist-user-filter" style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--navy);background:var(--white);outline:none">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <!-- Type chips -->
+      <div id="hist-type-filter" style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="hist-chip active" data-type="">ทั้งหมด</button>
+        <button class="hist-chip" data-type="beik">📦 เบิก</button>
+        <button class="hist-chip" data-type="khad">🚨 สินค้าขาด</button>
+        <button class="hist-chip" data-type="count">✅ นับสต็อค</button>
+      </div>
     </div>
 
     <div class="sbar" id="hist-status">
@@ -729,7 +757,32 @@ async function fetchSheet(id,tab){
   const r=await fetch(gviz(id,tab));const t=await r.text();
   const j=JSON.parse(t.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
   const cols=j.table.cols.map(c=>c.label);
-  return j.table.rows.map(row=>{const o={};cols.forEach((h,i)=>{o[h]=(row.c&&row.c[i]&&row.c[i].v!==null)?String(row.c[i].v).trim():'';});return o;});
+  return j.table.rows.map(row=>{
+    const o={};
+    cols.forEach((h,i)=>{
+      const cell=row.c&&row.c[i];
+      if(!cell||(cell.v===null&&!cell.f)){o[h]='';return;}
+      /* ถ้ามี formatted value ใช้ก่อน (สำหรับ date/time/number) */
+      if(cell.f!==undefined&&cell.f!==null&&cell.f!==''){o[h]=String(cell.f).trim();return;}
+      /* ถ้า v เป็น string ที่ขึ้นต้น "Date(...)" แปลงกลับเอง */
+      const v=cell.v;
+      if(typeof v==='string'&&/^Date\(/.test(v)){
+        const m=v.match(/Date\((-?\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
+        if(m){
+          const Y=+m[1],M=+m[2],D=+m[3],H=+m[4]||0,mi=+m[5]||0;
+          /* ถ้า Y=1899 → time-only cell */
+          if(Y===1899){
+            o[h]=String(H).padStart(2,'0')+':'+String(mi).padStart(2,'0');
+            return;
+          }
+          o[h]=String(D).padStart(2,'0')+'/'+String(M+1).padStart(2,'0')+'/'+(Y+543);
+          return;
+        }
+      }
+      o[h]=(v!==null&&v!==undefined)?String(v).trim():'';
+    });
+    return o;
+  });
 }
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1954,6 +2007,10 @@ async function scCommit(){
 
 /* ══ HISTORY — ดึงข้อมูลจาก 2 tab แล้วโชว์รวมวันนี้ ══ */
 let _histLoadedOnce=false;
+let _histAllItems=[];      /* ข้อมูลดิบทั้งหมด (หลัง filter วันนี้) */
+let _histFilterUser='';
+let _histFilterType='';
+let _histSearchText='';
 
 function _histSetStatus(msg,state){
   const dot=document.querySelector('#hist-status .sdot');
@@ -1984,13 +2041,15 @@ async function histRefresh(){
     countRows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.STOCK_COUNT_TAB).catch(()=>[]);
   }catch(e){}
 
-  /* กรองเฉพาะวันนี้ + map เป็น unified format */
+  /* กรองเฉพาะวันนี้ + map เป็น unified format + เก็บ rowIdx ไว้เรียง */
   const allItems=[];
 
-  beikRows.forEach(r=>{
+  beikRows.forEach((r,idx)=>{
     const d=(r['วันที่']||'').trim();
     if(d!==today)return;
     allItems.push({
+      _sheet:'beik',
+      _rowIdx:idx,
       kind:(r['ประเภท']||'').includes('ขาด')?'khad':'beik',
       time:r['เวลา']||'',
       name:r['ชื่อสินค้า']||'—',
@@ -2001,14 +2060,15 @@ async function histRefresh(){
       locC4:r['Location C4']||'',
       stockC4:r['สต็อก C4']||'',
       stockW4:r['สต็อก W4']||'',
-      extra:null
     });
   });
 
-  countRows.forEach(r=>{
+  countRows.forEach((r,idx)=>{
     const d=(r['วันที่']||'').trim();
     if(d!==today)return;
     allItems.push({
+      _sheet:'count',
+      _rowIdx:idx,
       kind:'count',
       time:r['เวลา']||'',
       name:r['ชื่อสินค้า']||'—',
@@ -2023,10 +2083,17 @@ async function histRefresh(){
     });
   });
 
-  /* sort ใหม่ล่าสุดก่อน */
-  allItems.sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+  /* sort: row index สูง = append ล่าสุด = ขึ้นก่อน
+     ถ้ามาจากคนละ sheet เรียงตาม time จากใหม่ → เก่า */
+  allItems.sort((a,b)=>{
+    if(a._sheet===b._sheet)return b._rowIdx-a._rowIdx;
+    return (b.time||'').localeCompare(a.time||'');
+  });
 
-  _histRenderList(allItems);
+  _histAllItems=allItems;
+  _histPopulateUserFilter();
+  _histApplyFilters();
+
   _histLoadedOnce=true;
   if(btn)btn.disabled=false;
 
@@ -2037,9 +2104,40 @@ async function histRefresh(){
   }
 }
 
+/* populate dropdown ของ user ที่มีในข้อมูล */
+function _histPopulateUserFilter(){
+  const sel=document.getElementById('hist-user-filter');
+  if(!sel)return;
+  const users=[...new Set(_histAllItems.map(x=>x.user).filter(Boolean))].sort();
+  const prev=sel.value;
+  sel.innerHTML='<option value="">ทั้งหมด</option>'+users.map(u=>`<option value="${u}">${u}</option>`).join('');
+  /* restore ถ้า user ยังอยู่ */
+  if(users.includes(prev))sel.value=prev;
+  else _histFilterUser='';
+}
+
+/* apply filter + search */
+function _histApplyFilters(){
+  let items=_histAllItems;
+  if(_histFilterUser)items=items.filter(x=>x.user===_histFilterUser);
+  if(_histFilterType)items=items.filter(x=>x.kind===_histFilterType);
+  if(_histSearchText){
+    const q=_histSearchText.toLowerCase();
+    items=items.filter(x=>
+      (x.name||'').toLowerCase().includes(q)||
+      (x.codeEA||'').toLowerCase().includes(q)||
+      (x.locC4||'').toLowerCase().includes(q)
+    );
+  }
+  _histRenderList(items);
+}
+
 function _histRenderList(items){
   const list=document.getElementById('hist-list');
-  if(!items.length){list.innerHTML='';return;}
+  if(!items.length){
+    list.innerHTML='<div class="sc-empty">ไม่มีรายการตรงกับตัวกรอง</div>';
+    return;
+  }
   list.innerHTML=items.map(it=>{
     const tag=it.kind==='khad'?'<span class="hist-tag tag-khad">🚨 สินค้าขาด</span>'
              :it.kind==='beik'?'<span class="hist-tag tag-beik">📦 เบิก</span>'
@@ -2075,6 +2173,45 @@ function _histRenderList(items){
     </div>`;
   }).join('');
 }
+
+/* bind filter events */
+(function bindHistFilters(){
+  const sel=document.getElementById('hist-user-filter');
+  if(sel){
+    sel.addEventListener('change',function(){
+      _histFilterUser=this.value;
+      _histApplyFilters();
+    });
+  }
+  const chips=document.querySelectorAll('#hist-type-filter .hist-chip');
+  chips.forEach(c=>{
+    c.addEventListener('click',function(){
+      chips.forEach(x=>x.classList.remove('active'));
+      this.classList.add('active');
+      _histFilterType=this.dataset.type;
+      _histApplyFilters();
+    });
+  });
+  const si=document.getElementById('hist-search');
+  const cb=document.getElementById('hist-clear-btn');
+  if(si){
+    let t;
+    si.addEventListener('input',function(){
+      const v=this.value;
+      if(cb)cb.classList.toggle('visible',v.length>0);
+      clearTimeout(t);
+      t=setTimeout(()=>{_histSearchText=v.trim();_histApplyFilters();},200);
+    });
+  }
+  if(cb){
+    cb.addEventListener('click',()=>{
+      if(si)si.value='';
+      cb.classList.remove('visible');
+      _histSearchText='';
+      _histApplyFilters();
+    });
+  }
+})();
 
 window.histRefresh=histRefresh;
 window.navTo=navTo;
