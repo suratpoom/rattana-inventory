@@ -159,7 +159,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 #html5-qr-reader__dashboard{display:none!important}
 #html5-qr-reader__header_message{display:none!important}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:10}
-.scanner-frame{width:260px;height:130px;border-radius:14px;position:relative}
+.scanner-frame{width:300px;height:170px;border-radius:14px;position:relative}
 .scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold2);opacity:.85;animation:scanline 1.8s ease-in-out infinite}
 @keyframes scanline{0%{top:6px;opacity:1}50%{top:114px;opacity:.6}100%{top:6px;opacity:1}}
 .scan-corner{position:absolute;width:20px;height:20px;border-color:var(--gold2);border-style:solid;border-width:0}
@@ -666,6 +666,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <span class="req-unit">ลัง (CS)</span>
     </div>
 
+    <!-- ── warning สำหรับโหมดสินค้าขาด ── -->
+    <div id="khad-warn-box" style="display:none;background:#fff0f0;border:2px solid var(--urgent);border-radius:var(--rsm);padding:14px;margin-bottom:16px">
+      <div style="color:var(--urgent-dark);font-weight:700;font-size:14px;margin-bottom:6px">⚠️ ใช้เฉพาะ Checker เท่านั้น</div>
+      <div style="color:var(--urgent-dark);font-size:12px;line-height:1.5">
+        การแจ้ง "สินค้าขาด" เป็นการยืนยันว่าสินค้าหมดจาก shelf
+        และต้องการให้จัดซื้อสั่งเพิ่มด่วน
+      </div>
+    </div>
+
     <!-- ผลคำนวณ — แสดงเฉพาะโหมดเบิก -->
     <div class="transfer-box" id="transfer-box">
       <div class="transfer-row">
@@ -1137,13 +1146,20 @@ async function startScan(){
 
     html5QrScanner=new Html5Qrcode('html5-qr-reader',{
       verbose:false,
-      experimentalFeatures:{useBarCodeDetectorIfSupported:true}
+      experimentalFeatures:{useBarCodeDetectorIfSupported:true}  /* ใช้ native BarcodeDetector ของ browser (เร็วกว่า) */
     });
 
     const config={
-      fps:15,
-      qrbox:{width:280,height:140},
-      aspectRatio:1.5,
+      fps:25,  /* เพิ่มจาก 15 → 25 = อ่านได้ถี่ขึ้น */
+      qrbox:{width:320,height:180},  /* ROI ใหญ่ขึ้น เพื่อรองรับบาร์โค้ดโค้ง/เอียง */
+      aspectRatio:1.7777,  /* 16:9 */
+      videoConstraints:{
+        facingMode:{ideal:'environment'},
+        width:{ideal:1920,min:1280},    /* resolution สูงขึ้น = คมชัดขึ้น */
+        height:{ideal:1080,min:720},
+        focusMode:'continuous',          /* autofocus ต่อเนื่อง */
+        advanced:[{focusMode:'continuous'},{zoom:1.5}]  /* zoom 1.5x ช่วยให้อ่านง่ายขึ้น */
+      },
       formatsToSupport:[
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
@@ -1176,16 +1192,28 @@ async function startScan(){
         const v=document.querySelector('#html5-qr-reader video');
         if(v&&v.srcObject){
           const tracks=v.srcObject.getVideoTracks();
-          if(tracks.length&&tracks[0].getCapabilities&&tracks[0].getCapabilities().torch){
-            torchTrack=tracks[0];
-            document.getElementById('torch-btn').style.display='flex';
-          }else{document.getElementById('torch-btn').style.display='none';}
+          if(tracks.length){
+            const track=tracks[0];
+            /* Torch support */
+            if(track.getCapabilities&&track.getCapabilities().torch){
+              torchTrack=track;
+              document.getElementById('torch-btn').style.display='flex';
+            }else{document.getElementById('torch-btn').style.display='none';}
+            /* Apply continuous autofocus + zoom if supported */
+            try{
+              const caps=track.getCapabilities?track.getCapabilities():{};
+              const advanced=[];
+              if(caps.focusMode&&caps.focusMode.includes('continuous'))advanced.push({focusMode:'continuous'});
+              if(caps.zoom&&caps.zoom.max>=1.5)advanced.push({zoom:Math.min(1.5,caps.zoom.max)});
+              if(advanced.length)track.applyConstraints({advanced}).catch(()=>{});
+            }catch(e){}
+          }
         }
       }catch(e){document.getElementById('torch-btn').style.display='none';}
-    },1000);
+    },800);
 
     setScanStatus('กล้องพร้อม — วางบาร์โค้ดให้อยู่ในกรอบสีทอง','ok');
-    document.getElementById('scan-hint').textContent='พบปัญหา? ถอยห่างจากบาร์โค้ด 10-20 ซม. หรือพิมพ์เองด้านล่าง';
+    document.getElementById('scan-hint').textContent='บาร์โค้ดโค้ง/ขวด: ถอยห่าง 15-25 ซม. / ใช้ไฟถ้าแสงน้อย';
 
   }catch(e){
     let msg='เปิดกล้องไม่ได้ — ลองพิมพ์บาร์โค้ดด้านล่าง';
@@ -1438,19 +1466,26 @@ function setReqType(type){
 
   const submit=document.getElementById('req-submit');
   const transferBox=document.getElementById('transfer-box');
+  const qtyRow=document.querySelector('.req-qty-row');
+  const warnBox=document.getElementById('khad-warn-box');
 
   if(type==='เบิก'){
     document.getElementById('req-title').textContent='📦 เบิกสินค้า';
     document.getElementById('req-qty-label').textContent='จำนวนที่เบิก';
     submit.style.background='#e8a020';submit.style.color='#fff';
+    submit.textContent='ส่งคำขอ';
+    if(qtyRow)qtyRow.style.display='flex';
+    if(warnBox)warnBox.style.display='none';
     _renderStockBar('beik');
     transferBox.classList.remove('visible');
     /* คำนวณทันทีสำหรับค่าเริ่มต้น qty=1 */
     calcTransfer();
   } else if(type==='สินค้าขาด'){
-    document.getElementById('req-title').textContent='🚨 แจ้งสินค้าขาด (ด่วน)';
-    document.getElementById('req-qty-label').textContent='สั่งเพิ่ม';
+    document.getElementById('req-title').textContent='🚨 แจ้งสินค้าขาดจาก Shelf';
     submit.style.background='var(--urgent)';submit.style.color='var(--white)';
+    submit.textContent='⚠️ ยืนยันขาดจาก Shelf';
+    if(qtyRow)qtyRow.style.display='none';
+    if(warnBox)warnBox.style.display='block';
     _renderStockBar('khad');
     transferBox.classList.remove('visible');
   }
@@ -1469,8 +1504,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 async function submitRequest(){
-  const qty=parseInt(document.getElementById('req-qty').value)||0;
-  if(qty<1){
+  const isKhad=_reqType==='สินค้าขาด';
+  const qty=isKhad?0:(parseInt(document.getElementById('req-qty').value)||0);
+  if(!isKhad&&qty<1){
     document.getElementById('req-msg').textContent='กรุณาระบุจำนวนอย่างน้อย 1 ลัง';
     document.getElementById('req-msg').style.color='var(--red)';return;
   }
@@ -1484,46 +1520,43 @@ async function submitRequest(){
   const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
   const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
-  /* คำนวณ transfer สำหรับ payload */
+  /* คำนวณ transfer สำหรับ payload (โหมดเบิกเท่านั้น) */
   const c4=parseInt((r&&r['STOCK C4'])||0)||0;
   const w4=parseInt((r&&r['STOCK W4'])||0)||0;
-  const fromC4=_reqType==='เบิก'?Math.min(qty,Math.max(0,c4)):0;
-  const fromW4=_reqType==='เบิก'?Math.min(Math.max(0,qty-c4),Math.max(0,w4)):0;
-  const needOrder=_reqType==='เบิก'?Math.max(0,qty-(c4+w4)):0;
+  const fromC4=!isKhad?Math.min(qty,Math.max(0,c4)):0;
+  const fromW4=!isKhad?Math.min(Math.max(0,qty-c4),Math.max(0,w4)):0;
+  const needOrder=!isKhad?Math.max(0,qty-(c4+w4)):0;
 
   const payload={
     date,time,
     name:r?r['PRODUCT NAME']:'',
     codeEA:r?r['CODE EA']:'',
-    codeCS:r?r['CODE CS']:'',          /* บาร์โค้ดลัง */
+    codeCS:r?r['CODE CS']:'',
     qty,
     type:_reqType,
     user:currentUser?currentUser.name:'',
-    locC4:(r?(r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']):'') ||'',  /* Location สินค้าใน C4 */
-    branch:CONFIG.LOCATION||'',        /* สาขา */
+    locC4:(r?(r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']):'') ||'',
+    branch:CONFIG.LOCATION||'',
     stockC4:safeStockStr(r?r['STOCK C4']:''),
     stockW4:safeStockStr(r?r['STOCK W4']:''),
-    /* เฉพาะโหมดเบิก */
-    fromC4:_reqType==='เบิก'?fromC4:'',
-    fromW4:_reqType==='เบิก'?fromW4:'',
-    needOrder:_reqType==='เบิก'?needOrder:'',
+    fromC4:!isKhad?fromC4:'',
+    fromW4:!isKhad?fromW4:'',
+    needOrder:!isKhad?needOrder:'',
   };
 
-  document.getElementById('req-submit').disabled=true;
-  document.getElementById('req-msg').textContent='';
-
-  /* ── fire-and-forget: ไม่ await — ส่งทันทีแล้วปิด modal เลย ── */
+  /* ── fire-and-forget: text/plain เพื่อข้าม CORS preflight (เร็วขึ้น) ── */
   fetch(CONFIG.APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)
-  }).catch(()=>{});  /* กลืน error เพราะ no-cors ไม่ throw จริงๆ */
+  }).catch(()=>{});
 
-  document.getElementById('req-msg').textContent='✅ ส่งคำขอสำเร็จ!';
+  document.getElementById('req-submit').disabled=true;
+  document.getElementById('req-msg').textContent=isKhad?'✅ แจ้งสินค้าขาดแล้ว!':'✅ ส่งคำขอสำเร็จ!';
   document.getElementById('req-msg').style.color='var(--green)';
   document.getElementById('req-submit').textContent='ส่งแล้ว ✓';
-  setTimeout(()=>closeReqModal(),900);
+  setTimeout(()=>closeReqModal(),500);  /* เร็วขึ้น จาก 900ms → 500ms */
 }
 
 document.getElementById('req-overlay').addEventListener('click',function(e){
@@ -1987,11 +2020,11 @@ async function scCommit(){
     user:currentUser?currentUser.name:'',
   }));
 
-  /* fire-and-forget ทุก row */
+  /* fire-and-forget ทุก row (text/plain = ข้าม CORS preflight → เร็วขึ้น) */
   rows.forEach(row=>{
     fetch(CONFIG.APPS_SCRIPT_URL,{
       method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(row)
     }).catch(()=>{});
   });
