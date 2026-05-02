@@ -6,9 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d2b5e">
-<title>รัตนมาร์ท — ระบบค้นหาสินค้า v2.3</title>
+<title>รัตนมาร์ท — ระบบค้นหาสินค้า v5.16</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 :root{
   --navy:#0d2b5e;--navy2:#1a3a6b;--navy3:#0a1f47;
   --gold:#c9a84c;--gold2:#f0c040;--gold3:#a07830;
@@ -239,9 +240,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .barcode-cs-val{font-family:monospace;font-size:13px;font-weight:700;color:var(--navy);flex:1}
 .barcode-cs-label{font-size:10px;color:var(--muted);white-space:nowrap}
 
-.req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;display:none;align-items:flex-end}
+.req-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;display:none;align-items:flex-end;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .req-overlay.open{display:flex}
-.req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease}
+.req-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px;margin:0 auto;animation:slideUp .25s ease;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .req-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;display:block}
 .req-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
@@ -336,11 +337,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .hist-item.hist-beik{border-left-color:#e8a020}
 .hist-item.hist-khad{border-left-color:var(--urgent)}
 .hist-item.hist-count{border-left-color:#1a7a4a}
+.hist-item.hist-expiry{border-left-color:#7030a0}
 .hist-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:8px}
 .hist-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0;text-transform:uppercase;letter-spacing:.3px}
 .hist-tag.tag-beik{background:#fff4e8;color:#8a4a00}
 .hist-tag.tag-khad{background:var(--urgent);color:var(--white)}
 .hist-tag.tag-count{background:#e0f0e8;color:var(--green)}
+.hist-tag.tag-expiry{background:#efe0ff;color:#5a1f80}
 .hist-time{font-size:10px;color:var(--muted);flex-shrink:0}
 .hist-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;line-height:1.3}
 .hist-detail{font-size:12px;color:var(--muted);line-height:1.5}
@@ -348,9 +351,691 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .hist-chip{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-weight:600;transition:all .15s}
 .hist-chip.active{background:var(--navy);border-color:var(--navy);color:var(--gold2)}
 .hist-chip:active{opacity:.8}
+
+/* ══ v5.16 — Sticky Session Bar (ก้นจอ เหนือ bottom nav) ══ */
+.session-bar{
+  position:fixed;
+  left:0;right:0;
+  bottom:62px;     /* เหนือ bottom-nav (ที่สูง ~62px) */
+  background:linear-gradient(135deg,var(--navy) 0%,#1a2a52 100%);
+  color:var(--gold2);
+  z-index:90;
+  padding:12px 16px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom,0px) * 0);
+  box-shadow:0 -4px 20px rgba(0,0,0,.2);
+  display:none;
+  animation:slideUpBar .25s ease;
+  cursor:pointer;
+  border-top:2px solid var(--gold2);
+}
+.session-bar.visible{display:flex;align-items:center;gap:10px}
+@keyframes slideUpBar{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.session-bar:active{opacity:.85}
+.session-bar-icon{
+  width:36px;height:36px;
+  background:var(--gold2);color:var(--navy);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;
+  flex-shrink:0;
+}
+.session-bar-text{
+  flex:1;min-width:0;
+}
+.session-bar-title{
+  font-size:13px;font-weight:700;color:var(--gold2);
+  line-height:1.2;
+}
+.session-bar-sub{
+  font-size:11px;color:rgba(240,192,64,.75);
+  margin-top:1px;
+}
+.session-bar-arrow{
+  flex-shrink:0;
+  font-size:24px;color:var(--gold2);
+  font-weight:800;
+}
+.has-bnav.has-session-bar{padding-bottom:calc(62px + 60px)}
+
+/* ══ v5.16 — Result item action buttons (เบิก/ขาด/นับ) ══ */
+.result-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--light);
+}
+.result-action-btn{
+  padding:9px 4px;
+  border:1.5px solid;
+  border-radius:8px;
+  background:var(--white);
+  font-size:12px;font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;
+  text-align:center;
+  line-height:1.2;
+  transition:all .15s;
+}
+.result-action-btn:active{transform:scale(.97)}
+.ra-beik{border-color:#e8a020;color:#a06400;background:#fff8e8}
+.ra-beik:active{background:#e8a020;color:#fff}
+.ra-khad{border-color:var(--urgent);color:var(--urgent-dark);background:#fff0f0}
+.ra-khad:active{background:var(--urgent);color:#fff}
+.ra-nub{border-color:var(--green);color:#0f6030;background:#e8f5ec}
+.ra-nub:active{background:var(--green);color:#fff}
+
+/* ══ v5.16 — Compact price grid in result item ══ */
+.lprice-mini{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:5px;
+  margin-top:6px;
+}
+.lpcell{
+  background:var(--light);
+  border-radius:6px;
+  padding:5px 4px;
+  text-align:center;
+}
+.lpcell-l{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+.lpcell-v{font-size:13px;color:var(--navy);font-weight:700;line-height:1.1;margin-top:1px}
+.lpcell-v.empty{color:#c0c4cc}
+.lp-stock-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:6px;font-size:11px;
+}
+.lp-stock-label{color:var(--muted);font-weight:600}
+.lp-stock-val{font-weight:800;color:var(--navy)}
+
+/* ══ v5.16 — Stock count modal (popup เปิดจากผลค้นหา) ══ */
+/* ใช้ .req-overlay ที่มีอยู่แล้ว */
+
+/* ══ v5.16 — Thai Date Picker ══ */
+.tdp-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:2000;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:16px;
+  -webkit-overflow-scrolling:touch;
+  overflow-y:auto;
+}
+.tdp-overlay.open{display:flex}
+.tdp-card{
+  background:var(--white);
+  border-radius:14px;
+  width:100%;max-width:340px;
+  padding:14px;
+  box-shadow:0 10px 40px rgba(0,0,0,.3);
+  animation:slideUp .2s ease;
+  box-sizing:border-box;
+  max-height:90vh;max-height:90dvh;
+  overflow-y:auto;
+}
+.tdp-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+  gap:8px;
+}
+.tdp-nav{
+  background:var(--light);
+  border:none;
+  width:34px;height:34px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:20px;color:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  font-family:inherit;
+  flex-shrink:0;
+}
+.tdp-nav:active{background:var(--border)}
+.tdp-title{
+  flex:1;text-align:center;
+  font-weight:700;font-size:15px;
+  color:var(--navy);
+}
+.tdp-month-yr{
+  display:flex;gap:6px;
+  margin-bottom:10px;
+}
+.tdp-month-yr select{
+  flex:1;
+  padding:6px 8px;
+  border:1.5px solid var(--border);
+  border-radius:6px;
+  font-size:13px;
+  font-family:inherit;
+  background:var(--white);
+  color:var(--navy);
+  outline:none;
+}
+.tdp-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:3px;
+  margin-bottom:10px;
+}
+.tdp-dow{
+  text-align:center;
+  font-size:11px;font-weight:700;
+  color:var(--muted);
+  padding:6px 0;
+}
+.tdp-day{
+  aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid transparent;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;font-weight:600;
+  background:var(--white);
+  color:var(--navy);
+  font-family:inherit;
+  padding:0;
+}
+.tdp-day:hover:not(:disabled){background:var(--light)}
+.tdp-day.tdp-other{color:#c0c4cc;font-weight:400}
+.tdp-day.tdp-today{border-color:var(--navy2);font-weight:800}
+.tdp-day.tdp-selected{background:var(--navy);color:var(--gold2)}
+.tdp-day:disabled{opacity:.3;cursor:not-allowed}
+.tdp-foot{
+  display:flex;gap:8px;
+  border-top:1px solid var(--light);
+  padding-top:10px;
+}
+.tdp-btn{
+  flex:1;
+  padding:9px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  background:var(--white);
+  color:var(--muted);
+  font-weight:600;font-size:13px;
+  cursor:pointer;
+  font-family:inherit;
+}
+.tdp-btn:active{opacity:.85}
+.tdp-btn.tdp-today-btn{
+  border-color:var(--navy2);color:var(--navy);
+}
+.tdp-btn.tdp-clear-btn{color:var(--red);border-color:#f0a0a0}
+
+/* trigger button (replacement for input[type=date]) */
+.tdp-trigger{
+  width:100%;max-width:100%;box-sizing:border-box;
+  border:1.5px solid;
+  border-radius:6px;
+  padding:9px 12px;
+  font-size:15px;font-weight:600;
+  background:var(--white);
+  outline:none;
+  font-family:inherit;
+  display:flex;align-items:center;gap:8px;
+  text-align:left;
+  cursor:pointer;
+  min-height:42px;
+}
+.tdp-trigger:active{opacity:.85}
+.tdp-trigger-empty{color:var(--muted);font-weight:400}
+.tdp-trigger-icon{flex-shrink:0;width:14px;height:14px}
+
+/* ══ v5.16 — User override input ══ */
+.user-override-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;
+  background:#f5f7fa;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:10px;
+  font-size:12px;
+}
+.user-override-label{
+  font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;
+  flex-shrink:0;
+}
+.user-override-name{
+  flex:1;
+  font-weight:700;color:var(--navy);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.user-override-edit{
+  background:none;border:1px solid var(--border);
+  padding:3px 9px;border-radius:6px;
+  cursor:pointer;font-size:11px;font-weight:600;
+  color:var(--navy);font-family:inherit;
+  flex-shrink:0;
+}
+.user-override-edit:active{opacity:.85}
+.user-override-input{
+  flex:1;
+  padding:5px 9px;
+  border:1.5px solid var(--navy2);
+  border-radius:6px;
+  font-size:13px;font-weight:600;
+  outline:none;font-family:inherit;
+  color:var(--navy);
+  background:var(--white);
+  min-width:0;
+}
+.user-override-default-tag{
+  font-size:9px;font-weight:600;
+  color:var(--muted);
+  background:var(--light);
+  padding:1px 6px;
+  border-radius:6px;
+  flex-shrink:0;
+}
+
+/* ══ v5.16 — ultra-compact shelf one-liner (เล็กที่สุด) ══ */
+.shelf-mini{
+  display:flex;align-items:center;gap:6px;
+  flex-wrap:wrap;
+  background:#f0f7ff;
+  border:1px solid #c8d8ec;
+  border-radius:6px;
+  padding:5px 9px;
+  font-size:11px;
+  margin-top:4px;margin-bottom:6px;
+  line-height:1.4;
+}
+.shelf-mini b{color:var(--navy);font-weight:700}
+.shelf-mini .shelf-cov-pill{
+  font-size:10px;
+  padding:1px 6px;
+  margin-left:auto;
+}
+.shelf-mini-sep{color:var(--border);margin:0 1px}
+
+/* ══ v5.16 — Stock on Shelf info box ══ */
+.shelf-box{
+  background:linear-gradient(135deg,#f0f7ff 0%,#e0eeff 100%);
+  border:1.5px solid #a0c0e8;
+  border-radius:10px;
+  padding:12px 14px;
+  margin-bottom:12px;
+}
+.shelf-title{
+  font-size:11px;font-weight:700;
+  color:var(--navy);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.shelf-title svg{width:14px;height:14px;fill:var(--navy)}
+.shelf-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-bottom:8px;
+}
+.shelf-cell{
+  background:var(--white);
+  border:1px solid #c8d8ec;
+  border-radius:6px;
+  padding:8px 6px;
+  text-align:center;
+}
+.shelf-cell.shelf-target{background:var(--navy);border-color:var(--navy)}
+.shelf-cell-label{
+  font-size:9px;font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.shelf-cell.shelf-target .shelf-cell-label{color:var(--gold2)}
+.shelf-cell-val{
+  font-size:16px;font-weight:800;
+  color:var(--navy);
+  line-height:1.1;
+}
+.shelf-cell.shelf-target .shelf-cell-val{color:var(--gold2)}
+.shelf-cell-sub{
+  font-size:9px;color:var(--muted);
+  margin-top:1px;
+}
+.shelf-cell.shelf-target .shelf-cell-sub{color:rgba(240,192,64,.7)}
+.shelf-foot{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);
+  margin-top:6px;padding-top:6px;
+  border-top:1px solid #c8d8ec;
+}
+.shelf-foot b{color:var(--navy);font-weight:700}
+.shelf-cov-pill{
+  font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:6px;color:#fff;
+}
+/* v5.16: warning row ใน detail page (ใหญ่ขึ้น) */
+.shelf-warning-row{
+  margin-top:8px;
+  display:flex;justify-content:center;
+}
+.shelf-warning-row .shelf-cov-pill{
+  font-size:14px;
+  padding:8px 14px;
+  border-radius:8px;
+  display:inline-flex;align-items:center;gap:6px;
+  width:100%;
+  text-align:center;justify-content:center;
+}
+.cov-good{background:var(--green)}
+.cov-warn{background:#e8770a}
+.cov-low{background:var(--urgent)}
+.cov-none{background:#1a1a1a}
+.cov-overflow{background:#1a1a1a}
+
+/* ══ v5.16 — Sub-tabs + Expiry list ══ */
+.subtabs{
+  display:flex;
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:4px;
+  margin-bottom:12px;
+  gap:4px;
+}
+.subtab{
+  flex:1;
+  background:none;border:none;
+  padding:10px 8px;
+  border-radius:8px;
+  font-size:13px;font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  transition:background .15s,color .15s;
+  font-family:inherit;
+}
+.subtab.active{background:var(--navy);color:var(--gold2)}
+.subtab:active{opacity:.85}
+
+/* Expiry product group */
+.exp-group{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:8px;
+}
+.exp-group-name{
+  font-size:13px;font-weight:700;color:var(--navy);
+  margin-bottom:2px;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.exp-group-meta{
+  font-size:10px;color:var(--muted);
+  margin-bottom:8px;
+}
+.exp-lot-row{
+  display:flex;align-items:center;
+  padding:6px 8px;
+  border-radius:6px;
+  margin-bottom:3px;
+  font-size:12px;
+  gap:8px;
+  border-left:3px solid;
+}
+.exp-lot-row:last-child{margin-bottom:0}
+.exp-lot-date{font-weight:600;flex:1}
+.exp-lot-qty{font-weight:700;flex-shrink:0}
+.exp-lot-days{
+  font-size:11px;font-weight:700;
+  padding:2px 7px;border-radius:6px;
+  flex-shrink:0;
+}
+.lot-expired{background:#1a1a1a;color:#fff;border-left-color:#1a1a1a}
+.lot-expired .exp-lot-days{background:#000;color:#fff}
+.lot-red{background:#fff0f0;color:var(--urgent-dark);border-left-color:var(--urgent)}
+.lot-red .exp-lot-days{background:var(--urgent);color:#fff}
+.lot-orange{background:#fff5e8;color:#a04500;border-left-color:#e8770a}
+.lot-orange .exp-lot-days{background:#e8770a;color:#fff}
+.lot-yellow{background:#fffae0;color:#7a5800;border-left-color:#d4a418}
+.lot-yellow .exp-lot-days{background:#d4a418;color:#fff}
+.lot-green{background:#e8f5ec;color:#0f6030;border-left-color:var(--green)}
+.lot-green .exp-lot-days{background:var(--green);color:#fff}
+
+/* Unknown product modal */
+.unk-info-box{
+  background:#fff8e8;
+  border:1.5px solid #e8c060;
+  border-radius:8px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  font-size:12px;
+  line-height:1.5;
+  color:#7a4a00;
+}
+.unk-info-box b{color:#5a3000}
+.unk-field{margin-bottom:12px}
+.unk-label{
+  font-size:11px;font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+.unk-input{
+  width:100%;
+  border:1.5px solid var(--border);
+  border-radius:6px;
+  padding:10px 12px;
+  font-size:15px;
+  outline:none;
+  font-family:inherit;
+  box-sizing:border-box;
+}
+.unk-input:focus{border-color:var(--navy2)}
+.unk-required-mark{color:var(--red);margin-left:2px}
+
+/* ══ v5.16 — expiry section dynamic theme ══ */
+.exp-section{
+  margin-bottom:12px;
+  padding:10px 12px;
+  border:1.5px solid;
+  border-radius:8px;
+  transition:background .2s,border-color .2s;
+}
+.exp-section.exp-optional{
+  background:#f5f5f7;
+  border-color:#d0d4dc;
+}
+.exp-section.exp-required{
+  background:#fff0f0;
+  border-color:#f0a0a0;
+}
+.exp-header{
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;
+}
+.exp-section.exp-optional .exp-header{color:var(--muted)}
+.exp-section.exp-required .exp-header{color:var(--urgent-dark)}
+.exp-section.exp-optional .exp-icon{fill:var(--muted)}
+.exp-section.exp-required .exp-icon{fill:var(--urgent-dark)}
+.exp-tag{
+  font-size:10px;font-weight:700;
+  color:#fff;
+  padding:2px 8px;border-radius:8px;
+  margin-left:auto;
+  letter-spacing:.3px;
+}
+.exp-section.exp-optional .exp-tag{background:#8a90a0}
+.exp-section.exp-required .exp-tag{background:var(--urgent)}
+.exp-input{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  border:1.5px solid;
+  border-radius:6px;
+  padding:9px 12px;
+  font-size:15px;font-weight:600;
+  background:var(--white);
+  outline:none;
+  font-family:inherit;
+  display:block;
+}
+.exp-section.exp-optional .exp-input{
+  border-color:#c0c4cc;
+  color:var(--navy);
+}
+.exp-section.exp-required .exp-input{
+  border-color:#e8a0a0;
+  color:var(--urgent-dark);
+}
+.exp-hint{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+.exp-section.exp-required .exp-hint{color:var(--urgent-dark);font-weight:600}
+
+/* ══ v5.16 — compact dead stock cards ══ */
+.dead-item{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-left:3px solid var(--urgent);
+  border-radius:8px;
+  padding:8px 12px;
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  transition:background .15s;
+}
+.dead-item:active{background:var(--light)}
+.dead-name{
+  font-size:13px;font-weight:600;color:var(--navy);
+  line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dead-meta{
+  font-size:10px;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-top:1px;
+}
+.dead-pill{
+  font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:6px;
+  white-space:nowrap;flex-shrink:0;
+  display:inline-block;
+}
+.dead-pill-c4{background:#fff0e8;color:var(--urgent)}
+.dead-pill-w4{background:var(--light);color:var(--muted)}
+.dead-rank{
+  background:var(--urgent);color:#fff;
+  font-size:9px;font-weight:700;
+  padding:1px 5px;border-radius:6px;
+  margin-right:4px;vertical-align:middle;
+}
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Toast + Loading Bar + Spinner Overlay + Refresh Button
+   ══════════════════════════════════════════════════ */
+
+/* Loading Bar (top of viewport) */
+#loading-bar{
+  position:fixed;top:0;left:0;height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));
+  width:0;transition:width .4s ease-out;
+  z-index:10000;pointer-events:none;
+  box-shadow:0 0 8px rgba(240,192,64,.6);
+}
+#loading-bar.active{width:85%}
+#loading-bar.done{width:100%;transition:width .2s,opacity .4s .2s;opacity:0}
+
+/* Toast */
+.toast-wrap{
+  position:fixed;
+  bottom:max(80px,calc(70px + env(safe-area-inset-bottom,0px)));
+  right:16px;
+  z-index:10001;
+  display:flex;flex-direction:column;gap:8px;
+  pointer-events:none;
+}
+.toast{
+  pointer-events:auto;
+  min-width:220px;max-width:320px;
+  padding:12px 16px;border-radius:10px;
+  color:var(--white);font-size:14px;font-weight:600;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  animation:toastIn .3s ease;
+  display:flex;align-items:center;gap:8px;
+  font-family:inherit;
+  line-height:1.4;
+}
+.toast.fade-out{animation:toastOut .3s ease forwards}
+.toast-success{background:var(--green)}
+.toast-error{background:var(--red)}
+.toast-warning{background:#e8a020;color:var(--navy)}
+.toast-info{background:var(--navy);border-left:3px solid var(--gold2)}
+@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{to{transform:translateX(120%);opacity:0}}
+
+/* Spinner Overlay (full-screen) */
+#spinner-overlay{
+  position:fixed;inset:0;
+  background:rgba(13,43,94,.65);
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;
+  z-index:10002;
+}
+#spinner-overlay.active{display:flex}
+.spinner-box{
+  background:var(--white);
+  border-radius:16px;
+  padding:32px 40px;
+  text-align:center;
+  border-top:4px solid var(--gold2);
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+  min-width:200px;
+}
+.spinner-circle{
+  width:48px;height:48px;
+  border:4px solid var(--border);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  margin:0 auto 14px;
+  animation:spin .8s linear infinite;
+}
+.spinner-msg{
+  font-size:14px;font-weight:600;
+  color:var(--navy);
+  font-family:inherit;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Refresh button (on topbar) */
+.btn-refresh{
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(240,192,64,.3);
+  border-radius:50%;
+  width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:background .15s;
+  padding:0;
+}
+.btn-refresh:active{background:rgba(255,255,255,.2)}
+.btn-refresh svg{width:18px;height:18px;fill:var(--gold2)}
+.btn-refresh.spinning svg{animation:spin .6s linear}
+.btn-refresh:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
+<!-- v5.16: Toast + Loading Bar + Spinner Overlay -->
+<div id="loading-bar"></div>
+<div class="toast-wrap" id="toast-wrap"></div>
+<div id="spinner-overlay">
+  <div class="spinner-box">
+    <div class="spinner-circle"></div>
+    <div class="spinner-msg" id="spinner-msg">กำลังโหลด...</div>
+  </div>
+</div>
+
 <div id="app">
 
 <!-- ── LOGIN ── -->
@@ -361,13 +1046,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       onerror="this.style.display='none'"
       alt="Rattana Mart">
     <div class="login-card">
-      <label class="field-label">Username</label>
-      <input class="field-input" id="inp-user" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="ชื่อผู้ใช้">
-      <label class="field-label">Password</label>
-      <input class="field-input" id="inp-pw" type="password" autocomplete="current-password" placeholder="รหัสผ่าน">
-      <button class="login-btn" id="login-btn" type="button">เข้าสู่ระบบ</button>
-      <div class="login-err" id="login-err"></div>
+      <div style="text-align:center;color:var(--navy);font-weight:700;font-size:17px;margin-bottom:2px">ระบบค้นหาสินค้า</div>
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:22px">v5.16 — เข้าสู่ระบบด้วยบัญชี Google</div>
+
+      <div id="g_id_onload"
+        data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+        data-callback="handleGoogleLogin"
+        data-auto_prompt="false"></div>
+
+      <div style="display:flex;justify-content:center;min-height:44px">
+        <div class="g_id_signin"
+          data-type="standard"
+          data-size="large"
+          data-theme="outline"
+          data-text="sign_in_with"
+          data-shape="rectangular"
+          data-logo_alignment="left"></div>
+      </div>
+
+      <div class="login-err" id="login-err" style="margin-top:14px"></div>
       <div class="login-msg" id="login-msg"></div>
+
+      <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:20px;line-height:1.6;border-top:1px solid var(--light);padding-top:14px">
+        ใช้ Google ของบริษัท<br>
+        หากไม่สามารถเข้าได้ — ติดต่อแอดมินเพื่อเพิ่มสิทธิ์
+      </div>
     </div>
   </div>
 </div>
@@ -380,8 +1083,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
-      <div class="topbar-sub">ระบบค้นหาสินค้า v2.3</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า v5.16</div>
     </div>
+    <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-main" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
     <div class="user-chip">
       <span class="chip-name" id="chip-name"></span>
       <span class="role-badge" id="chip-role"></span>
@@ -422,7 +1128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </button>
     <div style="flex:1">
       <div class="topbar-title">สแกนบาร์โค้ด</div>
-      <div class="topbar-sub">รัตนมาร์ท v2.1</div>
+      <div class="topbar-sub">รัตนมาร์ท v5.16</div>
     </div>
   </div>
   <div class="content">
@@ -466,6 +1172,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <div class="topbar-title" id="dtitle" style="font-size:14px;line-height:1.3">รายละเอียดสินค้า</div>
       <div class="topbar-sub" id="dsku"></div>
     </div>
+    <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-detail" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
     <div class="user-chip">
       <span class="chip-name" id="dchip-name"></span>
       <span class="role-badge" id="dchip-role"></span>
@@ -474,15 +1183,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   <div class="content" id="detail-content"></div>
 </div>
 
+<!-- ══ v5.16: Sticky Session Bar — แสดงเมื่อมีรายการนับ ══ -->
+<div class="session-bar" id="session-bar" onclick="navTo('stock')">
+  <div class="session-bar-icon" id="session-bar-count">0</div>
+  <div class="session-bar-text">
+    <div class="session-bar-title" id="session-bar-title">มีรายการนับสต็อค</div>
+    <div class="session-bar-sub" id="session-bar-sub">แตะเพื่อดูและบันทึก</div>
+  </div>
+  <div class="session-bar-arrow">›</div>
+</div>
+
 <!-- ══ BOTTOM NAV — แสดงเมื่อ login แล้ว ══ -->
 <nav class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="bnav-item active" id="bnav-search" onclick="navTo('search')">
     <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     <span>ค้นหา</span>
   </button>
-  <button class="bnav-item" id="bnav-stock" onclick="navTo('stock')">
-    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
-    <span>นับสต็อค</span>
+  <button class="bnav-item" id="bnav-dead" onclick="navTo('dead')">
+    <svg viewBox="0 0 24 24"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zM21 3H3v18h18V3z"/></svg>
+    <span>สรุป</span>
   </button>
   <button class="bnav-item" id="bnav-hist" onclick="navTo('hist')">
     <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8H12z"/></svg>
@@ -498,8 +1217,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">นับสต็อค</div>
-      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v3.0</div>
+      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v5.16</div>
     </div>
+    <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-stock" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
     <div class="user-chip">
       <span class="chip-name" id="sc-chip-name"></span>
       <span class="role-badge" id="sc-chip-role"></span>
@@ -533,6 +1255,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <div class="sc-found-name" id="sc-found-name">—</div>
       <div class="sc-found-sub" id="sc-found-sub">—</div>
 
+      <!-- v5.16: Stock on Shelf info -->
+      <!-- v5.16: ลบ sc-shelf-info ออก ตามที่ user ขอ (ดูจากหน้า detail แทน) -->
+
       <!-- ปุ่มสลับหน่วย EA/PA/BP/CS -->
       <div id="sc-unit-switcher" style="margin-top:10px;margin-bottom:10px"></div>
 
@@ -546,6 +1271,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
       <!-- preview EA ที่คำนวณได้ -->
       <div id="sc-ea-preview" style="text-align:center;font-size:14px;color:var(--muted);margin-bottom:10px;display:none">—</div>
+
+      <!-- v5.16: ช่องวันหมดอายุ — Thai date picker -->
+      <div id="sc-expiry-section" class="exp-section exp-optional">
+        <div class="exp-header">
+          <svg viewBox="0 0 24 24" class="exp-icon" style="width:14px;height:14px"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+          วันหมดอายุ <span id="sc-expiry-tag" class="exp-tag">ไม่บังคับ</span>
+        </div>
+        <button type="button" id="sc-expiry-trigger" class="tdp-trigger exp-input tdp-trigger-empty" onclick="scOpenExpiryPicker()">
+          <svg class="tdp-trigger-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+          <span>แตะเพื่อเลือกวันที่</span>
+        </button>
+        <div id="sc-expiry-hint" class="exp-hint"></div>
+      </div>
 
       <div class="sc-msg" id="sc-add-msg"></div>
       <button class="sc-add-btn" id="sc-add-btn" onclick="scAddItem()">➕ เพิ่มในรายการ</button>
@@ -568,6 +1306,124 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   </div>
 </div>
 
+<!-- v5.16: s-expiry screen removed (merged into นับสต็อค) -->
+
+<!-- ══ SCREEN: สรุป (สินค้าไม่เคลื่อนไหว / ใกล้หมดอายุ) — v5.16 ══ -->
+<div id="s-dead" class="screen has-bnav">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8" onerror="this.style.display='none'" alt="">
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="topbar-title">📋 สรุป</div>
+      <div class="topbar-sub" id="dead-topbar-sub">รายงานสินค้า</div>
+    </div>
+    <button class="btn-refresh" onclick="globalRefresh();summaryReload(true);" id="btn-refresh-dead" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+    <div class="user-chip">
+      <span class="chip-name" id="dead-chip-name"></span>
+      <span class="role-badge" id="dead-chip-role"></span>
+    </div>
+  </div>
+  <div class="content has-bnav" id="dead-content">
+
+    <div class="subtabs">
+      <button class="subtab active" id="subtab-deadstock" onclick="summarySwitch('deadstock')">🐌 สินค้าไม่เคลื่อนไหว</button>
+      <button class="subtab" id="subtab-expiry" onclick="summarySwitch('expiry')">📅 ใกล้หมดอายุ</button>
+    </div>
+
+    <!-- v5.16: Search box สำหรับ filter ทั้ง 2 sub-tab -->
+    <div style="position:relative;margin-bottom:10px">
+      <input type="text" id="summary-search" placeholder="🔍 ค้นหาชื่อสินค้า / barcode / location..." autocomplete="off"
+        style="width:100%;padding:10px 36px 10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;background:var(--white)">
+      <button id="summary-search-clear" onclick="summaryClearSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--light);border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--muted);font-family:inherit">✕</button>
+    </div>
+
+    <div id="summary-deadstock-section">
+      <div class="sbar" id="dead-status">
+        <div class="sdot loading"></div>
+        <span id="dead-status-text">กำลังคำนวณ...</span>
+      </div>
+      <div id="dead-list"></div>
+    </div>
+
+    <div id="summary-expiry-section" style="display:none">
+      <div class="sbar" id="exp-status">
+        <div class="sdot loading"></div>
+        <span id="exp-status-text">กำลังโหลดประวัติวันหมดอายุ...</span>
+      </div>
+      <div id="exp-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL: Thai Date Picker — NEW v5.16 ══ -->
+<div class="tdp-overlay" id="tdp-overlay">
+  <div class="tdp-card">
+    <div class="tdp-head">
+      <button class="tdp-nav" id="tdp-prev" type="button">‹</button>
+      <div class="tdp-title" id="tdp-title">—</div>
+      <button class="tdp-nav" id="tdp-next" type="button">›</button>
+    </div>
+    <div class="tdp-month-yr">
+      <select id="tdp-month-sel"></select>
+      <select id="tdp-year-sel"></select>
+    </div>
+    <div class="tdp-grid" id="tdp-grid"></div>
+    <div class="tdp-foot">
+      <button class="tdp-btn tdp-clear-btn" type="button" onclick="tdpClear()">ล้าง</button>
+      <button class="tdp-btn tdp-today-btn" type="button" onclick="tdpToday()">วันนี้</button>
+      <button class="tdp-btn" type="button" onclick="tdpClose()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: สินค้ายิงไม่เจอ — NEW v5.16 ══ -->
+<div class="req-overlay" id="unk-overlay">
+  <div class="req-sheet">
+    <span class="req-handle"></span>
+    <div class="req-title" style="color:var(--urgent-dark)">❓ ไม่พบสินค้าในระบบ</div>
+    <div class="unk-info-box">
+      <b>บาร์โค้ด:</b> <span id="unk-barcode" style="font-family:monospace">—</span><br>
+      บันทึกได้ — สินค้าจะถูก mark ว่า <b>(ไม่เจอ)</b> ในชีท เพื่อตามเช็คภายหลัง
+    </div>
+    <div class="unk-field">
+      <div class="unk-label">ชื่อสินค้า <span class="unk-required-mark">*</span></div>
+      <input type="text" id="unk-name" class="unk-input" placeholder="พิมพ์ชื่อสินค้า เช่น น้ำตาลทรายขาว 1กก." autocomplete="off">
+    </div>
+    <div class="unk-field">
+      <div class="unk-label">Location <span class="unk-required-mark">*</span></div>
+      <input type="text" id="unk-loc" class="unk-input" placeholder="เช่น C4.30.04.02" autocomplete="off">
+    </div>
+    <div class="unk-field">
+      <div class="unk-label">จำนวน <span class="unk-required-mark">*</span></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="sc-qty-minus" onclick="unkAdjQty(-1)">−</button>
+        <input type="number" id="unk-qty" class="unk-input" value="1" min="1" inputmode="numeric" style="text-align:center;font-weight:700;font-size:20px">
+        <button class="sc-qty-plus" onclick="unkAdjQty(1)">+</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button type="button" class="sc-unit-btn active" data-unk-unit="EA" onclick="unkSetUnit('EA')" style="flex:1">
+          <div style="font-size:13px;font-weight:700">EA (ชิ้น)</div>
+        </button>
+        <button type="button" class="sc-unit-btn" data-unk-unit="CS" onclick="unkSetUnit('CS')" style="flex:1">
+          <div style="font-size:13px;font-weight:700">CS (ลัง)</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="unk-field" id="unk-eapercs-field" style="display:none">
+      <div class="unk-label">1 ลัง (CS) มีกี่ EA?</div>
+      <input type="number" id="unk-eapercs" class="unk-input" value="1" min="1" inputmode="numeric" placeholder="เช่น 24, 36, 48">
+    </div>
+    <div class="req-msg" id="unk-msg"></div>
+    <button class="req-submit" id="unk-submit" onclick="unkSubmit()" style="background:var(--urgent);color:#fff">บันทึกในรายการนับสต็อค</button>
+    <button class="req-cancel" onclick="closeUnkModal()">ยกเลิก</button>
+  </div>
+</div>
+
 <!-- ══ SCREEN: ประวัติ ══ -->
 <div id="s-hist" class="screen has-bnav">
   <div class="topbar">
@@ -578,6 +1434,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <div class="topbar-title">ประวัติวันนี้</div>
       <div class="topbar-sub" id="hist-topbar-sub">ตรวจสอบว่าข้อมูลเข้าแล้ว</div>
     </div>
+    <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-hist" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
     <div class="user-chip">
       <span class="chip-name" id="hist-chip-name"></span>
       <span class="role-badge" id="hist-chip-role"></span>
@@ -640,6 +1499,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <button class="req-type-btn khad" id="req-type-khad" onclick="setReqType('สินค้าขาด')">🚨 สินค้าขาด<span>แจ้งจัดซื้อด่วน</span></button>
     </div>
 
+    <!-- v5.16: ชื่อผู้แจ้ง (override ได้ จำไว้) -->
+    <div class="user-override-row" id="req-user-row">
+      <span class="user-override-label">ผู้แจ้ง</span>
+      <span class="user-override-name" id="req-user-name">—</span>
+      <span class="user-override-default-tag" id="req-user-default-tag" style="display:none">default</span>
+      <button class="user-override-edit" id="req-user-edit-btn" onclick="reqUserEditStart()">✏️ แก้</button>
+      <input type="text" class="user-override-input" id="req-user-input" placeholder="ชื่อผู้แจ้ง" style="display:none" autocomplete="off">
+    </div>
+
     <!-- stock C4/W4 — แสดงทั้งสองโหมด -->
     <div class="stock-bar" id="req-stock-bar">
       <div class="stock-bar-title">
@@ -658,6 +1526,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       </div>
     </div>
 
+    <!-- v5.16: Stock on Shelf info — โผล่เฉพาะโหมดเบิก -->
+    <div id="req-shelf-info"></div>
+
     <div class="req-qty-row">
       <span class="req-qty-label" id="req-qty-label">จำนวนที่เบิก</span>
       <button class="req-qty-minus" onclick="adjQty(-1)">−</button>
@@ -675,26 +1546,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       </div>
     </div>
 
-    <!-- ผลคำนวณ — แสดงเฉพาะโหมดเบิก -->
+    <!-- v5.16: ผลคำนวณ 4 ชั้น cascade — แสดงเฉพาะโหมดเบิก -->
     <div class="transfer-box" id="transfer-box">
-      <div class="transfer-row">
+      <div id="tf-threshold-info" style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;font-weight:600">—</div>
+
+      <div class="transfer-row" id="tf-row-c4-normal">
         <span class="transfer-label">
           <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-          เบิกได้จาก C4 ทันที
+          1. เติม C4 (ชั้นวาง)
         </span>
-        <span class="transfer-val" id="tf-from-c4">—</span>
+        <span class="transfer-val" id="tf-c4-normal">—</span>
       </div>
-      <div class="transfer-row" id="tf-row-w4">
+
+      <div class="transfer-row" id="tf-row-kalang" style="display:none">
+        <span class="transfer-label">
+          <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
+          2. เบิกสต็อค C4
+        </span>
+        <span class="transfer-val" id="tf-kalang">—</span>
+      </div>
+
+      <div class="transfer-row" id="tf-row-w4" style="display:none">
         <span class="transfer-label">
           <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
-          ต้องโอนจาก W4
+          3. โอนจาก W4
         </span>
         <span class="transfer-val" id="tf-from-w4">—</span>
       </div>
+
       <div class="transfer-row" id="tf-row-order" style="display:none">
         <span class="transfer-label">
           <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
-          ต้องสั่งเพิ่ม
+          4. จัดซื้อสั่งเพิ่ม
         </span>
         <span class="transfer-val tv-red" id="tf-order">—</span>
       </div>
@@ -734,19 +1617,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 <script>
 /* ══════════════════════════════════════════════════
-   CONFIG — รัตนมาร์ท V2.1
+   CONFIG — รัตนมาร์ท V5.16 (Merged expiry + Thai BE date + 3-step request cascade)
    ══════════════════════════════════════════════════ */
 const CONFIG = {
   PROD_SHEET_ID:   '1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw',
-  USER_SHEET_ID:   '1sOqszajMR4KS5tWxfElnV-80Y9DsGJo_vBPwQopkgX4',
+  USER_SHEET_ID:   '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',   /* ← Company-wide Rattana Users */
   PROD_TAB:        'สินค้า',
-  USER_TAB:        'users',
+  USER_TAB:        'Rattana Users for apps',                          /* ← Company-wide tab */
   REQUEST_TAB:     'เบิก-สั่ง',
-  STOCK_COUNT_TAB: 'นับสต็อค',
+  STOCK_COUNT_TAB: 'นับสต็อค',                                      /* ← v5.16: column 12 = วันหมดอายุ */
   ROLE_RESTRICTED: 5,
-  SESSION_KEY:     'rattana_v8_session',
+  SESSION_KEY:     'rattana_v10_session',                             /* ← v5.16: Bumped (force re-login, new shape with loginAt) */
+  MAX_SESSION_DAYS: 30,                                                /* ← v5.16: auto-logout หลัง 30 วัน */
+  AUTO_REFRESH_MS: 2*60*60*1000,                                       /* ← v5.16: refresh data ทุก 2 ชม. */
   IMG_FOLDER_ID:   '17WrWJ9eU1-UcxBJ1s52I1kzizHndDWJY',
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwT9t7XdrYb1qobr2tdsuHpevyQF_3SnpVTpDEk7CUXHwiwgdW0Qziu1jKYQRvYpPJRXg/exec',
+  GOOGLE_CLIENT_ID:'615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
   LOCATION:        'สาขาหลัก',   /* ← แก้ชื่อสาขาที่นี่ */
 };
 
@@ -803,53 +1689,717 @@ function setStat(msg,state){
 }
 function fmtPrice(v){if(!v||v==='')return'—';const n=parseFloat(v);return isNaN(n)?'—':n.toLocaleString('th-TH');}
 function fmtStock(v){if(!v||v==='')return'—';const n=parseInt(v);return isNaN(n)?'—':n.toLocaleString('th-TH');}
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Thai BE date + Coverage + Request cascade
+   ══════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Thai Date Picker (custom calendar)
+   ══════════════════════════════════════════════════ */
+const TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_MONTHS_SHORT=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+let _tdpState={year:0,month:0,selected:null,onPick:null,triggerEl:null};
+
+/* แปลง yyyy-mm-dd (ISO) → dd ม.ค. yyyyพ.ศ. (display) */
+function isoToThaiDisplay(iso){
+  if(!iso)return '';
+  const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return iso;
+  const y=parseInt(m[1]),mo=parseInt(m[2]),d=parseInt(m[3]);
+  return d+' '+TH_MONTHS_SHORT[mo-1]+' '+(y+543);
+}
+
+/* แปลง yyyy-mm-dd → yyyy/mm/dd (สำหรับลง Google Sheet) */
+function isoToSheetDate(iso){
+  if(!iso)return '';
+  const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return iso;
+  return m[1]+'/'+m[2]+'/'+m[3];
+}
+
+/* ปัจจุบันเป็น yyyy-mm-dd */
+function todayISO(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+dd;
+}
+
+/* parser: "yyyy/mm/dd" หรือ "yyyy-mm-dd" → Date */
+function parseDateStr(s){
+  if(!s)return null;
+  const str=String(s).trim();
+  const m=str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if(!m)return null;
+  const y=parseInt(m[1]),mo=parseInt(m[2]),d=parseInt(m[3]);
+  if(y<2000||y>2100)return null;
+  const dt=new Date(y,mo-1,d);
+  return isNaN(dt.getTime())?null:dt;
+}
+
+/* เปิด picker — onPick(iso) callback */
+function tdpOpen(currentISO,onPick,triggerEl){
+  _tdpState.onPick=onPick;
+  _tdpState.triggerEl=triggerEl||null;
+  let init=parseDateStr(currentISO);
+  if(!init)init=new Date();
+  _tdpState.year=init.getFullYear();
+  _tdpState.month=init.getMonth();
+  _tdpState.selected=currentISO||null;
+  tdpRebuildSelectors();
+  tdpRender();
+  document.getElementById('tdp-overlay').classList.add('open');
+}
+window.tdpOpen=tdpOpen;
+
+function tdpClose(){
+  document.getElementById('tdp-overlay').classList.remove('open');
+}
+window.tdpClose=tdpClose;
+
+function tdpRebuildSelectors(){
+  const monthSel=document.getElementById('tdp-month-sel');
+  const yearSel=document.getElementById('tdp-year-sel');
+  /* months */
+  monthSel.innerHTML=TH_MONTHS.map((m,i)=>'<option value="'+i+'">'+m+'</option>').join('');
+  monthSel.value=String(_tdpState.month);
+  /* years (พ.ศ. 2567-2580 — ปรับได้) */
+  const curYear=new Date().getFullYear();
+  let opts='';
+  for(let y=curYear-2;y<=curYear+12;y++){
+    opts+='<option value="'+y+'">'+(y+543)+'</option>';
+  }
+  yearSel.innerHTML=opts;
+  yearSel.value=String(_tdpState.year);
+  monthSel.onchange=()=>{_tdpState.month=parseInt(monthSel.value);tdpRender();};
+  yearSel.onchange=()=>{_tdpState.year=parseInt(yearSel.value);tdpRender();};
+}
+
+function tdpRender(){
+  const y=_tdpState.year,m=_tdpState.month;
+  document.getElementById('tdp-title').textContent=TH_MONTHS[m]+' '+(y+543);
+  document.getElementById('tdp-month-sel').value=String(m);
+  document.getElementById('tdp-year-sel').value=String(y);
+
+  const grid=document.getElementById('tdp-grid');
+  let html='';
+  /* dow header */
+  TH_DOW.forEach(d=>{html+='<div class="tdp-dow">'+d+'</div>';});
+
+  /* first day of month */
+  const first=new Date(y,m,1);
+  const startDow=first.getDay(); /* 0=Sun */
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevDays=new Date(y,m,0).getDate();
+  const todayStr=todayISO();
+  const selStr=_tdpState.selected||'';
+
+  /* leading days from previous month */
+  for(let i=startDow-1;i>=0;i--){
+    const d=prevDays-i;
+    html+='<button class="tdp-day tdp-other" type="button" disabled>'+d+'</button>';
+  }
+  /* current month days */
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cls=['tdp-day'];
+    if(iso===todayStr)cls.push('tdp-today');
+    if(iso===selStr)cls.push('tdp-selected');
+    html+='<button class="'+cls.join(' ')+'" type="button" data-iso="'+iso+'" onclick="tdpPick(\''+iso+'\')">'+d+'</button>';
+  }
+  /* trailing days */
+  const totalCells=startDow+daysInMonth;
+  const remaining=(7-(totalCells%7))%7;
+  for(let i=1;i<=remaining;i++){
+    html+='<button class="tdp-day tdp-other" type="button" disabled>'+i+'</button>';
+  }
+  grid.innerHTML=html;
+}
+
+function tdpPick(iso){
+  _tdpState.selected=iso;
+  if(typeof _tdpState.onPick==='function')_tdpState.onPick(iso);
+  tdpClose();
+}
+window.tdpPick=tdpPick;
+
+function tdpToday(){
+  tdpPick(todayISO());
+}
+window.tdpToday=tdpToday;
+
+function tdpClear(){
+  if(typeof _tdpState.onPick==='function')_tdpState.onPick('');
+  tdpClose();
+}
+window.tdpClear=tdpClear;
+
+/* nav buttons */
+(function bindTdpNav(){
+  function attach(){
+    const prev=document.getElementById('tdp-prev');
+    const next=document.getElementById('tdp-next');
+    const ov=document.getElementById('tdp-overlay');
+    if(prev&&!prev.dataset.bound){
+      prev.dataset.bound='1';
+      prev.onclick=()=>{
+        let m=_tdpState.month-1,y=_tdpState.year;
+        if(m<0){m=11;y--;}
+        _tdpState.month=m;_tdpState.year=y;tdpRender();
+      };
+    }
+    if(next&&!next.dataset.bound){
+      next.dataset.bound='1';
+      next.onclick=()=>{
+        let m=_tdpState.month+1,y=_tdpState.year;
+        if(m>11){m=0;y++;}
+        _tdpState.month=m;_tdpState.year=y;tdpRender();
+      };
+    }
+    if(ov&&!ov.dataset.bound){
+      ov.dataset.bound='1';
+      ov.addEventListener('click',function(e){
+        if(e.target===this)tdpClose();
+      });
+    }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',attach);
+  } else {
+    attach();
+  }
+})();
+
+/* update trigger button display — call after pick */
+function tdpUpdateTrigger(triggerId,iso,placeholder){
+  const el=document.getElementById(triggerId);
+  if(!el)return;
+  el.dataset.iso=iso||'';
+  if(iso){
+    el.classList.remove('tdp-trigger-empty');
+    el.innerHTML='<svg class="tdp-trigger-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg><span>'+isoToThaiDisplay(iso)+'</span>';
+  } else {
+    el.classList.add('tdp-trigger-empty');
+    el.innerHTML='<svg class="tdp-trigger-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg><span>'+(placeholder||'แตะเพื่อเลือกวันที่')+'</span>';
+  }
+}
+window.tdpUpdateTrigger=tdpUpdateTrigger;
+
+/* ══════════════════════════════════════════════════
+   v5.16 — User override (ชื่อคนเบิกที่กำหนดเอง)
+   ══════════════════════════════════════════════════ */
+const USER_OVERRIDE_KEY='rattana_user_override';
+
+function getUserOverride(){
+  try{
+    const v=localStorage.getItem(USER_OVERRIDE_KEY);
+    return v||'';
+  }catch(e){return '';}
+}
+
+function setUserOverride(name){
+  try{
+    if(name)localStorage.setItem(USER_OVERRIDE_KEY,name);
+    else localStorage.removeItem(USER_OVERRIDE_KEY);
+  }catch(e){}
+}
+
+/* ดึงชื่อสำหรับ payload — override ก่อน, ถ้าไม่มีใช้ Google */
+function getEffectiveUserName(){
+  const ov=getUserOverride();
+  if(ov)return ov;
+  return currentUser?currentUser.name:'';
+}
+window.getEffectiveUserName=getEffectiveUserName;
+
+/* render ชื่อผู้แจ้งใน popup เบิก */
+function reqUserRefresh(){
+  const ov=getUserOverride();
+  const def=currentUser?currentUser.name:'';
+  const name=ov||def;
+  const nameEl=document.getElementById('req-user-name');
+  const tagEl=document.getElementById('req-user-default-tag');
+  if(nameEl)nameEl.textContent=name||'(ไม่ทราบ)';
+  if(tagEl)tagEl.style.display=ov?'none':'';
+  const inp=document.getElementById('req-user-input');
+  const editBtn=document.getElementById('req-user-edit-btn');
+  if(inp)inp.style.display='none';
+  if(nameEl)nameEl.style.display='';
+  if(editBtn){
+    editBtn.style.display='';
+    editBtn.textContent=ov?'↺ default':'✏️ แก้';
+  }
+}
+window.reqUserRefresh=reqUserRefresh;
+
+function reqUserEditStart(){
+  const ov=getUserOverride();
+  const editBtn=document.getElementById('req-user-edit-btn');
+  /* ถ้ามี override อยู่แล้ว ปุ่ม "↺ default" → ล้างและกลับไป default */
+  if(ov){
+    setUserOverride('');
+    reqUserRefresh();
+    return;
+  }
+  /* ไม่มี override → เปิดช่องให้พิมพ์ */
+  const nameEl=document.getElementById('req-user-name');
+  const tagEl=document.getElementById('req-user-default-tag');
+  const inp=document.getElementById('req-user-input');
+  if(nameEl)nameEl.style.display='none';
+  if(tagEl)tagEl.style.display='none';
+  if(editBtn)editBtn.style.display='none';
+  if(inp){
+    inp.style.display='';
+    inp.value=currentUser?currentUser.name:'';
+    inp.focus();
+    inp.select();
+  }
+}
+window.reqUserEditStart=reqUserEditStart;
+
+function reqUserSaveFromInput(){
+  const inp=document.getElementById('req-user-input');
+  if(!inp)return;
+  const v=inp.value.trim();
+  if(v){
+    setUserOverride(v);
+  }
+  reqUserRefresh();
+}
+window.reqUserSaveFromInput=reqUserSaveFromInput;
+
+/* bind enter/blur on input */
+(function bindReqUserInput(){
+  function attach(){
+    const inp=document.getElementById('req-user-input');
+    if(!inp||inp.dataset.bound)return;
+    inp.dataset.bound='1';
+    inp.addEventListener('blur',reqUserSaveFromInput);
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){e.preventDefault();this.blur();}
+      else if(e.key==='Escape'){
+        this.value=getUserOverride()||'';
+        reqUserRefresh();
+      }
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',attach);
+  } else {
+    attach();
+  }
+})();
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Date helpers
+   ══════════════════════════════════════════════════ */
+/* convert yyyy-mm-dd (HTML date input ค.ศ.) → dd/mm/yyyy พ.ศ. (legacy) */
+function isoToThaiBE(iso){
+  if(!iso)return'';
+  const parts=String(iso).split('-');
+  if(parts.length!==3)return iso;
+  const yearBE=parseInt(parts[0])+543;
+  return parts[2]+'/'+parts[1]+'/'+yearBE;
+}
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Sales calc helpers
+   ระบบใหม่: column AZ = AVG_EA/day (ขายเฉลี่ยต่อวัน, EA)
+   Backward compat: ถ้าไม่มี ใช้ AVERAGE 3MONTH (เดิม) ÷ 30
+   ══════════════════════════════════════════════════ */
+const SHELF_TARGET_DAYS=7;
+const SHELF_MIN_DAYS=3;
+const SHELF_REORDER_DAYS=5;
+const REQUEST_THRESHOLD_DAYS=2;
+
+/* ดึงยอดขายต่อวัน (EA) — รองรับทั้ง column ใหม่และเก่า */
+function salesPerDayEA(prod){
+  if(!prod)return 0;
+  /* ลองชื่อใหม่ก่อน */
+  const newCol=prod['AVG_EA/day']||prod['AVG EA/day']||prod['AVG_EA']||prod['AVG EA per day'];
+  if(newCol!==undefined&&newCol!==''){
+    const v=parseFloat(newCol);
+    if(!isNaN(v))return v;
+  }
+  /* fallback: ของเก่า AVERAGE 3MONTH (เคยเป็นยอดรวม → หาร 30) */
+  const oldCol=prod['AVERAGE 3MONTH'];
+  if(oldCol!==undefined&&oldCol!==''){
+    const v=parseFloat(oldCol);
+    if(!isNaN(v))return v/30;
+  }
+  return 0;
+}
+
+/* ขาย EA/วัน → CS/วัน */
+function salesPerDayCS(prod){
+  const ea=salesPerDayEA(prod);
+  const qPerCS=safeInt(prod&&(prod['QTY CS']||prod['QTY/CS']||prod['QTY']))||1;
+  return qPerCS>0?ea/qPerCS:0;
+}
+
+/* coverage = stock C4 (CS) ÷ ยอดขาย CS/วัน */
+function calcCoverage(prod){
+  if(!prod)return 0;
+  const stock=Math.floor(parseFloat(safeStockStr(prod['STOCK C4']))||0);
+  const sCS=salesPerDayCS(prod);
+  if(sCS<=0)return Infinity;
+  return stock/sCS;
+}
+
+/* บังคับใส่วันหมดอายุไหม? (slow movers > 30 วัน) */
+function isExpiryRequired(prod){
+  return calcCoverage(prod)>30;
+}
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Stock on Shelf
+   ใช้ default 7 วัน, Min=3, Reorder=5
+   ══════════════════════════════════════════════════ */
+function calcShelfStock(prod){
+  const eaPerDay=salesPerDayEA(prod);
+  const qPerCS=safeInt(prod&&(prod['QTY CS']||prod['QTY/CS']||prod['QTY']))||1;
+
+  /* target/min/reorder เป็น EA */
+  const targetEA=Math.max(1,Math.ceil(eaPerDay*SHELF_TARGET_DAYS));
+  const minEA=Math.max(1,Math.ceil(eaPerDay*SHELF_MIN_DAYS));
+  const reorderEA=Math.max(1,Math.ceil(eaPerDay*SHELF_REORDER_DAYS));
+
+  /* แปลงเป็น CS (ปัดขึ้น) */
+  const targetCS=qPerCS>0?Math.ceil(targetEA/qPerCS):0;
+  const minCS=qPerCS>0?Math.ceil(minEA/qPerCS):0;
+  const reorderCS=qPerCS>0?Math.ceil(reorderEA/qPerCS):0;
+
+  return{
+    eaPerDay,qPerCS,
+    targetEA,targetCS,
+    minEA,minCS,
+    reorderEA,reorderCS,
+    targetDays:SHELF_TARGET_DAYS,
+    minDays:SHELF_MIN_DAYS,
+    reorderDays:SHELF_REORDER_DAYS
+  };
+}
+
+/* สร้าง HTML กล่อง Stock on Shelf — ใช้ใน detail / popup เบิก / นับสต็อค */
+function buildShelfHTML(prod,opts){
+  opts=opts||{};
+  const compact=!!opts.compact;
+  const s=calcShelfStock(prod);
+  const cov=calcCoverage(prod);
+  const eaPerDayDisplay=s.eaPerDay>0?s.eaPerDay.toFixed(s.eaPerDay<10?1:0):'0';
+
+  /* v5.16: Thai warning — ใหญ่ขึ้น + ภาษาไทยชัดเจน */
+  let covPill='';
+  let covIcon='';
+  let covText='';
+  let covCls='';
+  if(cov===Infinity){
+    covCls='cov-none';covIcon='⚫';covText='ไม่มียอดขาย';
+  } else if(cov<=s.minDays){
+    covCls='cov-low';covIcon='🔴';covText='~'+Math.round(cov)+' วัน — ของใกล้หมด รีบเติม!';
+  } else if(cov<=s.reorderDays){
+    covCls='cov-warn';covIcon='🟠';covText='~'+Math.round(cov)+' วัน — ควรสั่งเพิ่ม';
+  } else if(cov<=30){
+    covCls='cov-good';covIcon='🟢';covText='~'+Math.round(cov)+' วัน — สต็อคปกติ';
+  } else {
+    covCls='cov-overflow';covIcon='⚠️';covText='~'+Math.round(cov)+' วัน — สต็อคมากเกินไป!';
+  }
+  covPill='<span class="shelf-cov-pill '+covCls+'">'+covIcon+' '+covText+'</span>';
+
+  const stockC4=Math.floor(parseFloat(safeStockStr(prod['STOCK C4']))||0);
+
+  if(compact){
+    /* v5.16: ultra-compact — 1 บรรทัด — ใช้ใน popup เบิก/นับ */
+    return `<div class="shelf-mini">
+      <span>📊 Min <b>${s.minCS}</b><span class="shelf-mini-sep">·</span>เป้า <b>${s.targetCS}</b> CS</span>
+      ${covPill}
+    </div>`;
+  }
+
+  /* v5.16: แบบเต็ม สำหรับหน้า detail — เล็กลง + เอา Reorder ออก + warning ใหญ่ */
+  return `<div class="shelf-box">
+    <div class="shelf-title">
+      📊 Stock on Shelf (${s.targetDays} วัน)
+    </div>
+    <div class="shelf-grid" style="grid-template-columns:1fr 1fr">
+      <div class="shelf-cell">
+        <div class="shelf-cell-label">Min ${s.minDays} วัน</div>
+        <div class="shelf-cell-val">${s.minEA} EA</div>
+        <div class="shelf-cell-sub">(${s.minCS} CS)</div>
+      </div>
+      <div class="shelf-cell shelf-target">
+        <div class="shelf-cell-label">เป้า ${s.targetDays} วัน</div>
+        <div class="shelf-cell-val">${s.targetEA} EA</div>
+        <div class="shelf-cell-sub">(${s.targetCS} CS)</div>
+      </div>
+    </div>
+    <div class="shelf-warning-row">
+      ${covPill}
+    </div>
+    <div class="shelf-foot">
+      <span>ขายเฉลี่ย <b>${eaPerDayDisplay}</b> EA/วัน • Stock C4 <b>${stockC4}</b> ลัง</span>
+    </div>
+  </div>`;
+}
+
+/* คำนวณ cascade เบิก: 4 ชั้น (CS only)
+   threshold = ขาย × 2 วัน = ~ครึ่งหนึ่งของ shelf target (เป้าหมายเติมชั้นวาง)
+   - เติม C4 (ชั้นวาง)   = min(qty, threshold, C4_stock)
+   - เบิกสต็อค C4        = min(remaining, c4_remaining)
+   - โอนจาก W4           = min(remaining, W4_stock)
+   - จัดซื้อสั่ง         = remaining สุดท้าย */
+function calcRequestCascade(qty,prod){
+  const c4=Math.floor(parseFloat(safeStockStr(prod&&prod['STOCK C4']))||0);
+  const w4=Math.floor(parseFloat(safeStockStr(prod&&prod['STOCK W4']))||0);
+  const sCS=salesPerDayCS(prod);
+  /* v5.16: threshold = ceil(ขาย CS/วัน × 2) — ใช้สูตรใหม่ */
+  const threshold=Math.max(1,Math.ceil(sCS*REQUEST_THRESHOLD_DAYS));
+
+  let remaining=Math.max(0,Math.floor(qty));
+  let beikC4=0,kalangC4=0,beikW4=0,orderMore=0;
+
+  /* ขั้น 1: เติม C4 (ชั้นวาง) — cap ทั้ง threshold และ C4 stock จริง */
+  beikC4=Math.min(remaining,threshold,Math.max(0,c4));
+  remaining-=beikC4;
+
+  /* ขั้น 2: เบิกสต็อค C4 — ดึง C4 ที่เหลือ */
+  const c4Remaining=Math.max(0,c4-beikC4);
+  if(remaining>0&&c4Remaining>0){
+    kalangC4=Math.min(remaining,c4Remaining);
+    remaining-=kalangC4;
+  }
+
+  /* ขั้น 3: โอนจาก W4 */
+  if(remaining>0){
+    beikW4=Math.min(remaining,Math.max(0,w4));
+    remaining-=beikW4;
+  }
+
+  /* ขั้น 4: จัดซื้อสั่งเพิ่ม */
+  orderMore=remaining;
+
+  return{threshold,beikC4,kalangC4,beikW4,orderMore,
+         c4,w4,total:beikC4+kalangC4+beikW4+orderMore};
+}
 /* stock ที่ส่งเข้า Sheet: ว่าง/- → 0 */
 function safeStockStr(v){if(!v||v===''||v==='-'||v==='—'||v==='#N/A')return'0';return v;}
 function saveSession(u){try{localStorage.setItem(CONFIG.SESSION_KEY,JSON.stringify(u));}catch(e){}}
 function loadSession(){try{return JSON.parse(localStorage.getItem(CONFIG.SESSION_KEY));}catch(e){return null;}}
 function clearSession(){try{localStorage.removeItem(CONFIG.SESSION_KEY);}catch(e){}}
-function updateChips(){
-  const n=currentUser?currentUser.name:'';const r=currentUser?'Role '+currentUser.role:'';
-  ['chip-name','dchip-name','sc-chip-name','hist-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
-  ['chip-role','dchip-role','sc-chip-role','hist-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
-}
 
-/* ══ AUTH ══ */
-async function doLogin(){
-  const username=document.getElementById('inp-user').value.trim();
-  const password=document.getElementById('inp-pw').value;
-  document.getElementById('login-err').textContent='';
-  if(!username||!password){document.getElementById('login-err').textContent='กรุณากรอก Username และ Password';return;}
-  document.getElementById('login-msg').textContent='กำลังตรวจสอบ...';
-  document.getElementById('login-btn').disabled=true;
-  try{
-    const users=await fetchSheet(CONFIG.USER_SHEET_ID,CONFIG.USER_TAB);
-    const matched=users.find(u=>u['username']===username&&u['password']===password);
-    if(!matched){
-      document.getElementById('login-err').textContent='Username หรือ Password ไม่ถูกต้อง';
-      document.getElementById('login-msg').textContent='';
-      document.getElementById('login-btn').disabled=false;return;
-    }
-    currentUser={username:matched['username'],name:matched['ชื่อ']||matched['name']||matched['username'],role:parseInt(matched['role'])||1};
-    saveSession(currentUser);document.getElementById('login-msg').textContent='';document.getElementById('login-btn').disabled=false;enterApp();
-  }catch(e){
-    document.getElementById('login-err').textContent='เชื่อมต่อไม่ได้ — ตรวจสอบสิทธิ์ Sheet';
-    document.getElementById('login-msg').textContent='';document.getElementById('login-btn').disabled=false;
+/* ══════════════════════════════════════════════════
+   v5.16 — Toast / Loading Bar / Spinner / Session expiry
+   ══════════════════════════════════════════════════ */
+function toast(msg,type){
+  type=type||'info';
+  const wrap=document.getElementById('toast-wrap');
+  if(!wrap)return;
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;
+  t.textContent=msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{
+    t.classList.add('fade-out');
+    setTimeout(()=>{try{t.remove();}catch(e){}},300);
+  },3500);
+}
+window.toast=toast;
+
+function setLoadingBar(on){
+  const bar=document.getElementById('loading-bar');
+  if(!bar)return;
+  if(on){
+    bar.classList.remove('done');
+    bar.classList.add('active');
+  } else {
+    bar.classList.remove('active');
+    bar.classList.add('done');
+    setTimeout(()=>{
+      bar.classList.remove('done');
+      bar.style.width='0';
+    },650);
   }
 }
+
+function showSpinner(msg){
+  const ov=document.getElementById('spinner-overlay');
+  const m=document.getElementById('spinner-msg');
+  if(m)m.textContent=msg||'กำลังโหลด...';
+  if(ov)ov.classList.add('active');
+}
+function hideSpinner(){
+  const ov=document.getElementById('spinner-overlay');
+  if(ov)ov.classList.remove('active');
+}
+
+/* check ว่า session ยังไม่หมด 30 วัน */
+function isSessionValid(s){
+  if(!s||!s.email||!s.name||typeof s.role!=='number')return false;
+  if(!s.loginAt)return false;
+  const ageMs=Date.now()-s.loginAt;
+  const maxMs=CONFIG.MAX_SESSION_DAYS*24*60*60*1000;
+  return ageMs<maxMs;
+}
+
+/* ปุ่ม refresh บน topbar ทุกหน้า */
+async function globalRefresh(){
+  if(!currentUser){toast('กรุณา login ก่อน','warning');return;}
+  /* spin all refresh buttons */
+  document.querySelectorAll('.btn-refresh').forEach(b=>{
+    b.classList.add('spinning');
+    b.disabled=true;
+  });
+  setLoadingBar(true);
+  try{
+    const rows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.PROD_TAB);
+    allData=rows.filter(r=>r['PRODUCT NAME']||BC_COLS.some(k=>r[k]));
+    setStat('โหลดสำเร็จ — พบ '+allData.length.toLocaleString('th-TH')+' รายการ','ok');
+    toast('อัพเดทแล้ว ✓','success');
+  }catch(e){
+    toast('โหลดข้อมูลไม่สำเร็จ','error');
+    setStat('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet','err');
+  }finally{
+    setLoadingBar(false);
+    setTimeout(()=>{
+      document.querySelectorAll('.btn-refresh').forEach(b=>{
+        b.classList.remove('spinning');
+        b.disabled=false;
+      });
+    },650);
+  }
+}
+window.globalRefresh=globalRefresh;
+
+/* auto-refresh ทุก 2 ชม. (เงียบ — ไม่มี spinner/toast) */
+let _autoRefreshTimer=null;
+function startAutoRefresh(){
+  if(_autoRefreshTimer)clearInterval(_autoRefreshTimer);
+  _autoRefreshTimer=setInterval(async()=>{
+    if(!currentUser)return;
+    /* เงียบ — ไม่ขัดจังหวะ user */
+    try{
+      const rows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.PROD_TAB);
+      const fresh=rows.filter(r=>r['PRODUCT NAME']||BC_COLS.some(k=>r[k]));
+      if(fresh.length>0){allData=fresh;}
+    }catch(e){/* fail silent */}
+  },CONFIG.AUTO_REFRESH_MS);
+}
+function stopAutoRefresh(){
+  if(_autoRefreshTimer){clearInterval(_autoRefreshTimer);_autoRefreshTimer=null;}
+}
+
+function updateChips(){
+  const n=currentUser?currentUser.name:'';const r=currentUser?'Role '+currentUser.role:'';
+  ['chip-name','dchip-name','sc-chip-name','hist-chip-name','dead-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
+  ['chip-role','dchip-role','sc-chip-role','hist-chip-role','dead-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
+}
+
+/* ══ AUTH — Google Sign-In ══ */
+function _decodeJwt(token){
+  try{
+    const payload=token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const padded=payload+'==='.slice(0,(4-payload.length%4)%4);
+    return JSON.parse(decodeURIComponent(escape(atob(padded))));
+  }catch(e){
+    try{return JSON.parse(atob(token.split('.')[1]));}catch(e2){return null;}
+  }
+}
+
+async function handleGoogleLogin(response){
+  const errEl=document.getElementById('login-err');
+  const msgEl=document.getElementById('login-msg');
+  errEl.textContent='';msgEl.textContent='';
+  showSpinner('กำลังตรวจสอบสิทธิ์...');
+
+  try{
+    const payload=_decodeJwt(response.credential);
+    if(!payload||!payload.email){
+      hideSpinner();
+      errEl.textContent='ตรวจสอบบัญชีไม่ได้ — ลองใหม่';
+      toast('ตรวจสอบบัญชีไม่ได้','error');
+      return;
+    }
+    const email=String(payload.email).toLowerCase().trim();
+
+    const users=await fetchSheet(CONFIG.USER_SHEET_ID,CONFIG.USER_TAB);
+    const user=users.find(u=>(String(u['E-mail']||'')).toLowerCase().trim()===email);
+
+    if(!user){
+      hideSpinner();
+      errEl.textContent='ไม่พบบัญชี "'+email+'" ในระบบ — ติดต่อแอดมินเพื่อเพิ่มสิทธิ์';
+      toast('ไม่พบบัญชีในระบบ','error');
+      try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
+      return;
+    }
+
+    const status=String(user['Status']||'').trim();
+    if(status!=='Active'){
+      hideSpinner();
+      errEl.textContent='บัญชีถูกระงับ (Status: '+(status||'—')+') — ติดต่อแอดมิน';
+      toast('บัญชีถูกระงับ','error');
+      try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
+      return;
+    }
+
+    const fullName=String(user['ชื่อ - สกุล']||user['ชื่อเล่น']||email).trim();
+
+    currentUser={
+      email,
+      username:email,                                        /* legacy compat */
+      name:fullName,                                         /* ← displayed on chip & recorded in sheets */
+      nickname:String(user['ชื่อเล่น']||'').trim(),
+      role:parseInt(user['User Role'])||1,                   /* default role 1 if empty */
+      warehouse:String(user['W']||'').trim(),
+      empId:String(user['รหัสพนักงาน']||'').trim(),
+      dept:String(user['แผนก']||'').trim(),
+      company:String(user['บริษัท']||'').trim(),
+      loginAt:Date.now(),                                    /* ← v5.16: ใช้คำนวณ session 30 วัน */
+    };
+    saveSession(currentUser);
+    toast('ยินดีต้อนรับ '+(currentUser.nickname||currentUser.name),'success');
+    enterApp();
+  }catch(e){
+    hideSpinner();
+    errEl.textContent='เชื่อมต่อไม่ได้ — ตรวจสอบสิทธิ์ Sheet';
+    toast('เชื่อมต่อไม่ได้','error');
+  }
+}
+window.handleGoogleLogin=handleGoogleLogin;
 async function enterApp(){
   updateChips();
   /* show bottom nav */
   document.getElementById('bottom-nav').style.display='flex';
   navTo('search');
+  showSpinner('กำลังโหลดข้อมูลสินค้า...');
+  setLoadingBar(true);
   setStat('กำลังโหลดข้อมูลสินค้า...','loading');
   try{
     const rows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.PROD_TAB);
     allData=rows.filter(r=>r['PRODUCT NAME']||BC_COLS.some(k=>r[k]));
     setStat('โหลดสำเร็จ — พบ '+allData.length.toLocaleString('th-TH')+' รายการ','ok');
-  }catch(e){setStat('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet','err');}
+    /* v5.16: เริ่ม auto-refresh background ทุก 2 ชม. */
+    startAutoRefresh();
+  }catch(e){
+    setStat('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet','err');
+    toast('โหลดข้อมูลไม่สำเร็จ','error');
+  }finally{
+    hideSpinner();
+    setLoadingBar(false);
+  }
 }
-function doLogout(){clearSession();currentUser=null;allData=[];document.getElementById('inp-user').value='';document.getElementById('inp-pw').value='';clearSearch();document.getElementById('bottom-nav').style.display='none';scClearSession();show('s-login');}
+function doLogout(){
+  clearSession();currentUser=null;allData=[];clearSearch();
+  document.getElementById('bottom-nav').style.display='none';
+  scClearSession();
+  stopAutoRefresh();                                          /* ← v5.16 */
+  /* disable Google auto-select so next user can pick a different account */
+  try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
+  show('s-login');
+}
 
 /* ══ FAB SCROLL-TO-TOP ══ */
 const mainContent=document.getElementById('main-content');
@@ -988,7 +2538,7 @@ function debugImg(r){
 function renderList(results,q){
   const area=document.getElementById('results-area');
   if(!results.length){area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบสินค้าที่ค้นหา</div>';return;}
-  let html=`<div class="result-count">พบ ${results.length} รายการ — กดเพื่อเลือกสินค้า</div>`;
+  let html=`<div class="result-count">พบ ${results.length} รายการ — กดดูรายละเอียด หรือกดปุ่มเพื่อดำเนินการ</div>`;
   results.slice(0,100).forEach(r=>{
     const imgUrl=getThumb(r);
     const thumb=imgUrl
@@ -998,8 +2548,8 @@ function renderList(results,q){
     const cat=[r['CAT GROUP'],r['CAT BRAND']].filter(Boolean).join(' · ');
     const isExact=q&&BC_COLS.some(k=>(r[k]||'').toLowerCase()===q);
     const badge=isExact?'<span class="exact-badge">ตรงทุกหลัก</span>':'';
-    html+=`<div class="list-item" onclick="showDetail(allData[${idx}])">
-      <div class="list-top">
+    html+=`<div class="list-item">
+      <div class="list-top" onclick="showDetail(allData[${idx}])" style="cursor:pointer">
         <div class="lthumb">${thumb}</div>
         <div style="flex:1;min-width:0">
           <div class="lname">${r['PRODUCT NAME']||'—'}${badge}</div>
@@ -1014,10 +2564,30 @@ function renderList(results,q){
         <div class="lpc"><div class="lpl">CS</div><div class="lpv">${fmtPrice(r['PRICE CC03 CS'])}</div></div>
       </div>
       <div class="list-stock-row"><span class="stock-label">สต็อก C4:</span><span class="stock-num">${fmtStock(r['STOCK C4'])}</span></div>
+      <div class="result-actions">
+        <button class="result-action-btn ra-beik" onclick="quickAction(${idx},'เบิก')">📦 เบิก</button>
+        <button class="result-action-btn ra-khad" onclick="quickAction(${idx},'สินค้าขาด')">🚨 ขาด</button>
+        <button class="result-action-btn ra-nub" onclick="quickAction(${idx},'นับ')">✅ นับสต็อค</button>
+      </div>
     </div>`;
   });
   area.innerHTML=html;
 }
+
+/* v5.16: ปุ่มในการ์ด → เปิด popup ตรง */
+function quickAction(idx,action){
+  const prod=allData[idx];
+  if(!prod)return;
+  _curProd=prod;
+  if(action==='เบิก'){
+    openReqModal('เบิก');
+  } else if(action==='สินค้าขาด'){
+    openReqModal('สินค้าขาด');
+  } else if(action==='นับ'){
+    openStockCountModal(prod);
+  }
+}
+window.quickAction=quickAction;
 
 /* ══ DETAIL — V2.1: เพิ่มปุ่มสินค้าขาด ══ */
 function showDetail(r){
@@ -1058,6 +2628,7 @@ function showDetail(r){
             ${r['SHORT NAME']?`<div class="result-short">${r['SHORT NAME']}</div>`:''}
             ${r['DESCRIPTION']?`<div class="result-sku">${r['DESCRIPTION']}</div>`:''}
             <div style="margin-top:6px">${cats.map(c=>`<span class="result-cat">${c}</span>`).join('')}</div>
+            ${buildShelfHTML(r,{compact:true})}
           </div>
           <div class="req-mini-wrap">
             <button class="req-mini-btn btn-beik" data-req="เบิก">
@@ -1076,10 +2647,11 @@ function showDetail(r){
           ${priceRows}
         </table>
         ${cc00Block}
+
         <div class="section-title">สต็อกและข้อมูล</div>
         <div class="info-row"><span class="ik">สต็อก C4</span><span class="iv">${fmtStock(r['STOCK C4'])}</span></div>
         <div class="info-row"><span class="ik">สต็อก W4</span><span class="iv">${fmtStock(r['STOCK W4'])}</span></div>
-        <div class="info-row"><span class="ik">เฉลี่ย 3 เดือน</span><span class="iv">${r['AVERAGE 3MONTH']||'—'}</span></div>
+        <div class="info-row"><span class="ik">ขายเฉลี่ย/วัน</span><span class="iv">${salesPerDayEA(r).toFixed(salesPerDayEA(r)<10?2:0)} EA</span></div>
         <div class="info-row"><span class="ik">Rank C4</span><span class="iv">${r['RANK C4']||'—'}</span></div>
         <div class="info-row"><span class="ik">Location</span><span class="iv">${r['Location']||'—'}</span></div>
         <div class="info-row"><span class="ik">Vendor</span><span class="iv">${r['VENDOR NAME']||'—'}</span></div>
@@ -1256,8 +2828,8 @@ function onScanFound(code){
     const hit=scFindProduct(code);
     if(hit){scSelectProduct(hit.prod,hit.unit);}
     else{
-      const area=document.getElementById('sc-results-area');
-      if(area)area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบบาร์โค้ด: '+code+'</div>';
+      /* v5.16: ไม่เจอ → เปิด modal สินค้ายิงไม่เจอ */
+      openUnkModal(code);
     }
     return;
   }
@@ -1391,37 +2963,52 @@ function calcTransfer(){
   if(_reqType!=='เบิก')return;
   const r=_curProd;
   const qty=parseInt(document.getElementById('req-qty').value)||0;
-  const c4=parseInt((r&&r['STOCK C4'])||0)||0;
-  const w4=parseInt((r&&r['STOCK W4'])||0)||0;
-  const total=c4+w4;
 
-  const fromC4=Math.min(qty,Math.max(0,c4));
-  const fromW4=Math.min(Math.max(0,qty-c4),Math.max(0,w4));
-  const needOrder=Math.max(0,qty-total);
+  /* v5.16: ใช้ cascade calculation 4 ชั้น */
+  const c=calcRequestCascade(qty,r);
 
   const box=document.getElementById('transfer-box');
   box.classList.add('visible');
+  box.className='transfer-box visible '+(c.orderMore>0?'t-danger':c.beikW4>0?'t-warn':'t-ok');
 
-  /* สีกล่องตามสถานะ */
-  box.className='transfer-box visible '+(needOrder>0?'t-danger':fromW4>0?'t-warn':'t-ok');
-
-  document.getElementById('tf-from-c4').textContent=fromC4+' ลัง';
-  document.getElementById('tf-from-c4').className='transfer-val '+(fromC4>0?'tv-green':'tv-orange');
-
-  const w4row=document.getElementById('tf-row-w4');
-  const orderRow=document.getElementById('tf-row-order');
-
-  if(fromW4>0){
-    w4row.style.display='flex';
-    document.getElementById('tf-from-w4').textContent='โอน '+fromW4+' ลัง จาก W4';
-    document.getElementById('tf-from-w4').className='transfer-val tv-orange';
-  } else {
-    w4row.style.display='none';
+  /* threshold info */
+  const thInfo=document.getElementById('tf-threshold-info');
+  if(thInfo){
+    thInfo.textContent='ชั้นวางปกติ: '+c.threshold+' ลัง (จากยอดขายเฉลี่ย ~2 วัน)';
   }
 
-  if(needOrder>0){
+  /* ขั้น 1: เบิก C4 ปกติ */
+  const c4El=document.getElementById('tf-c4-normal');
+  c4El.textContent=c.beikC4+' ลัง';
+  c4El.className='transfer-val '+(c.beikC4>0?'tv-green':'tv-orange');
+
+  /* ขั้น 2: คลัง C4 จัดให้ */
+  const kalangRow=document.getElementById('tf-row-kalang');
+  if(c.kalangC4>0){
+    kalangRow.style.display='flex';
+    const kalangEl=document.getElementById('tf-kalang');
+    kalangEl.textContent=c.kalangC4+' ลัง';
+    kalangEl.className='transfer-val tv-green';
+  } else {
+    kalangRow.style.display='none';
+  }
+
+  /* ขั้น 3: โอน W4 */
+  const w4Row=document.getElementById('tf-row-w4');
+  if(c.beikW4>0){
+    w4Row.style.display='flex';
+    const w4El=document.getElementById('tf-from-w4');
+    w4El.textContent=c.beikW4+' ลัง';
+    w4El.className='transfer-val tv-orange';
+  } else {
+    w4Row.style.display='none';
+  }
+
+  /* ขั้น 4: จัดซื้อสั่ง */
+  const orderRow=document.getElementById('tf-row-order');
+  if(c.orderMore>0){
     orderRow.style.display='flex';
-    document.getElementById('tf-order').textContent='สั่งเพิ่ม '+needOrder+' ลัง!';
+    document.getElementById('tf-order').textContent='สั่ง '+c.orderMore+' ลัง!';
   } else {
     orderRow.style.display='none';
   }
@@ -1437,6 +3024,9 @@ function openReqModal(type){
   document.getElementById('req-msg').style.color='';
   document.getElementById('req-submit').disabled=false;
   document.getElementById('req-submit').textContent='ส่งคำขอ';
+
+  /* v5.16: refresh ผู้แจ้ง */
+  reqUserRefresh();
 
   /* บาร์โค้ด CS */
   const csCode=r?(r['CODE CS']||''):'';
@@ -1477,6 +3067,9 @@ function setReqType(type){
     if(qtyRow)qtyRow.style.display='flex';
     if(warnBox)warnBox.style.display='none';
     _renderStockBar('beik');
+    /* v5.16: render shelf info */
+    const shelfHost=document.getElementById('req-shelf-info');
+    if(shelfHost&&_curProd)shelfHost.innerHTML=buildShelfHTML(_curProd,{compact:true});
     transferBox.classList.remove('visible');
     /* คำนวณทันทีสำหรับค่าเริ่มต้น qty=1 */
     calcTransfer();
@@ -1487,6 +3080,9 @@ function setReqType(type){
     if(qtyRow)qtyRow.style.display='none';
     if(warnBox)warnBox.style.display='block';
     _renderStockBar('khad');
+    /* v5.16: clear shelf info ในโหมดสินค้าขาด */
+    const shelfHost=document.getElementById('req-shelf-info');
+    if(shelfHost)shelfHost.innerHTML='';
     transferBox.classList.remove('visible');
   }
 }
@@ -1501,6 +3097,8 @@ function adjQty(d){
 /* คำนวณ live เมื่อพิมพ์จำนวน */
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('req-qty').addEventListener('input',calcTransfer);
+  /* v5.16: init session bar (hidden initially) */
+  if(typeof updateSessionBar==='function')updateSessionBar();
 });
 
 async function submitRequest(){
@@ -1517,15 +3115,15 @@ async function submitRequest(){
 
   const r=_curProd;
   const now=new Date();
-  const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  /* v5.16: date = YYYY/MM/DD ตาม spec ใหม่ */
+  const yyyy=now.getFullYear();
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const dd=String(now.getDate()).padStart(2,'0');
+  const date=yyyy+'/'+mm+'/'+dd;
   const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
-  /* คำนวณ transfer สำหรับ payload (โหมดเบิกเท่านั้น) */
-  const c4=parseInt((r&&r['STOCK C4'])||0)||0;
-  const w4=parseInt((r&&r['STOCK W4'])||0)||0;
-  const fromC4=!isKhad?Math.min(qty,Math.max(0,c4)):0;
-  const fromW4=!isKhad?Math.min(Math.max(0,qty-c4),Math.max(0,w4)):0;
-  const needOrder=!isKhad?Math.max(0,qty-(c4+w4)):0;
+  /* v5.16: ใช้ cascade calculation (4 ชั้น) */
+  const cascade=!isKhad?calcRequestCascade(qty,r):{beikC4:0,kalangC4:0,beikW4:0,orderMore:0,threshold:0};
 
   const payload={
     date,time,
@@ -1534,14 +3132,15 @@ async function submitRequest(){
     codeCS:r?r['CODE CS']:'',
     qty,
     type:_reqType,
-    user:currentUser?currentUser.name:'',
+    user:getEffectiveUserName(),     /* v5.16: ใช้ override ถ้ามี */
     locC4:(r?(r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']):'') ||'',
     branch:CONFIG.LOCATION||'',
     stockC4:safeStockStr(r?r['STOCK C4']:''),
     stockW4:safeStockStr(r?r['STOCK W4']:''),
-    fromC4:!isKhad?fromC4:'',
-    fromW4:!isKhad?fromW4:'',
-    needOrder:!isKhad?needOrder:'',
+    fromC4:!isKhad?cascade.beikC4:'',
+    kalangC4:!isKhad?cascade.kalangC4:'',
+    fromW4:!isKhad?cascade.beikW4:'',
+    needOrder:!isKhad?cascade.orderMore:'',
   };
 
   /* ── fire-and-forget: text/plain เพื่อข้าม CORS preflight (เร็วขึ้น) ── */
@@ -1556,6 +3155,7 @@ async function submitRequest(){
   document.getElementById('req-msg').textContent=isKhad?'✅ แจ้งสินค้าขาดแล้ว!':'✅ ส่งคำขอสำเร็จ!';
   document.getElementById('req-msg').style.color='var(--green)';
   document.getElementById('req-submit').textContent='ส่งแล้ว ✓';
+  toast(isKhad?'แจ้งสินค้าขาดแล้ว ✓':'ส่งคำขอเบิกแล้ว ✓','success');
   setTimeout(()=>closeReqModal(),500);  /* เร็วขึ้น จาก 900ms → 500ms */
 }
 
@@ -1564,17 +3164,7 @@ document.getElementById('req-overlay').addEventListener('click',function(e){
 });
 
 
-document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
-
-(function bindLogin(){
-  const btn=document.getElementById('login-btn');
-  btn.addEventListener('click',doLogin);
-  btn.addEventListener('touchend',function(e){
-    e.preventDefault();
-    doLogin();
-  });
-})();
+/* Google login is handled by GIS library via data-callback → handleGoogleLogin */
 
 /* ══ BOTTOM NAV ══ */
 function navTo(page){
@@ -1583,13 +3173,17 @@ function navTo(page){
     document.getElementById('bnav-search').classList.add('active');
     show('s-main');
   } else if(page==='stock'){
-    document.getElementById('bnav-stock').classList.add('active');
+    /* v5.16: stock = session viewer (เปิดจาก sticky bar) — ไม่ highlight nav, แต่ใช้ search active เพื่อยังคงมี active state */
+    document.getElementById('bnav-search').classList.add('active');
     show('s-stock');
     scUpdateTopbarSub();
+  } else if(page==='dead'){
+    document.getElementById('bnav-dead').classList.add('active');
+    show('s-dead');
+    summaryReload();
   } else if(page==='hist'){
     document.getElementById('bnav-hist').classList.add('active');
     show('s-hist');
-    /* auto-refresh ครั้งแรก ถ้ายังไม่เคยโหลด */
     if(!_histLoadedOnce){histRefresh();}
   }
 }
@@ -1601,8 +3195,8 @@ let _scCurUnit='CS';
 let _scCurMultipliers={EA:1,PA:1,BP:1,CS:1};
 
 function scUpdateTopbarSub(){
-  const loc=CONFIG.LOCATION||'';
-  document.getElementById('sc-topbar-sub').textContent='นับสต็อค'+(loc?' — '+loc:'');
+  /* v5.16: แสดง version แทนชื่อสาขา */
+  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v5.16';
 }
 
 /* ─ ค้นหาสินค้าจากบาร์โค้ด + detect หน่วย (EA/PA/BP/CS) ─ */
@@ -1661,7 +3255,19 @@ function scDoSearch(raw){
   }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,30);
 
   if(!scored.length){
-    area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบ "'+raw+'"</div>';
+    /* v5.16: ถ้าพิมพ์/ยิงเป็นบาร์โค้ด (ตัวเลขล้วน 4+ หลัก) ไม่เจอ → แสดงปุ่มเปิด popup */
+    if(/^\d{4,}$/.test(q)){
+      area.innerHTML='<div class="sbar" style="background:#fff8e8;border-color:#e8c060;color:#7a4a00">'+
+        '<div class="sdot err"></div>'+
+        '<span style="flex:1">ไม่พบบาร์โค้ด <b>'+q+'</b> ในระบบ</span>'+
+        '</div>'+
+        '<button onclick="openUnkModal(\''+q.replace(/'/g,"\\'")+'\')" '+
+        'style="width:100%;padding:14px;border:none;border-radius:8px;background:var(--urgent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px">'+
+        '❓ บันทึกเป็นสินค้าไม่เจอ'+
+        '</button>';
+    } else {
+      area.innerHTML='<div class="sbar"><div class="sdot err"></div>&nbsp;ไม่พบ "'+raw+'"</div>';
+    }
     return;
   }
 
@@ -1699,11 +3305,24 @@ function scSelectProduct(prod,unit){
 }
 
 /* ─ UI: แสดงสินค้าที่พบ + หน่วยที่สแกนมา ─ */
+/* v5.16: เปิดหน้านับสต็อค + pre-fill product (จาก quick action) */
+function openStockCountModal(prod){
+  navTo('stock');
+  setTimeout(()=>{
+    try{scShowFound(prod,'CS');}
+    catch(e){console.warn('scShowFound error',e);}
+  },120);
+}
+window.openStockCountModal=openStockCountModal;
+
 function scShowFound(prod,unit){
   _scCurProd=prod;
   _scCurUnit=unit||'CS';
   const name=prod['PRODUCT NAME']||'—';
-  const sku=prod['CODE EA']||prod['CODE CS']||'';
+  const codeEA=prod['CODE EA']||'';
+  const codeCS=prod['CODE CS']||'';
+  /* v5.16: ถ้ามี EA ใช้ EA, ถ้าไม่มีให้ใช้ CS พร้อม label */
+  const sku=codeEA?('EA: '+codeEA):(codeCS?('CS: '+codeCS):'');
   const qtyPerCS=safeInt(prod['QTY CS']||prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
   const qtyPerPA=safeInt(prod['QTY PA']||prod['QTY/PA']||'0');
   const qtyPerBP=safeInt(prod['QTY BP']||prod['QTY/BP']||'0');
@@ -1722,6 +3341,10 @@ function scShowFound(prod,unit){
   document.getElementById('sc-found-name').textContent=name;
   document.getElementById('sc-found-sub').innerHTML=subParts.join(' • ');
 
+  /* v5.16: render Stock on Shelf info */
+  const shelfHost=document.getElementById('sc-shelf-info');
+  if(shelfHost)shelfHost.innerHTML=buildShelfHTML(prod,{compact:true});
+
   /* ── unit chip แสดงหน่วยและตัวคูณ ── */
   const mult=_scCurMultipliers[_scCurUnit]||1;
   const unitChip=document.getElementById('sc-unit-chip');
@@ -1736,8 +3359,48 @@ function scShowFound(prod,unit){
   document.getElementById('sc-add-msg').textContent='';
   document.getElementById('sc-found-card').classList.add('visible');
   document.getElementById('sc-add-btn').disabled=false;
-  setTimeout(()=>document.getElementById('sc-qty').focus(),100);
+
+  /* v5.16: ตั้งค่าช่องวันหมดอายุ — toggle class ตาม required */
+  const expSectionEl=document.getElementById('sc-expiry-section');
+  const expTagEl=document.getElementById('sc-expiry-tag');
+  const expHintEl=document.getElementById('sc-expiry-hint');
+  /* reset trigger button */
+  tdpUpdateTrigger('sc-expiry-trigger','','แตะเพื่อเลือกวันที่');
+  const cov=calcCoverage(prod);
+  const required=isExpiryRequired(prod);
+  if(expSectionEl){
+    expSectionEl.classList.remove('exp-optional','exp-required');
+    expSectionEl.classList.add(required?'exp-required':'exp-optional');
+  }
+  if(expTagEl){
+    expTagEl.textContent=required?'⚠️ จำเป็น':'ไม่บังคับ';
+  }
+  if(expHintEl){
+    if(cov===Infinity){
+      expHintEl.textContent='⚠️ สินค้านี้ไม่มียอดขาย — ควรใส่วันหมดอายุ';
+    } else {
+      const covRound=Math.round(cov);
+      expHintEl.textContent='Coverage: ~'+covRound+' วัน'+(required?' — สินค้าเคลื่อนช้า ต้องใส่วันหมดอายุ':' — เคลื่อนเร็ว ใส่หรือไม่ก็ได้');
+    }
+  }
+
+  setTimeout(()=>{
+    /* v5.16: scroll the found card into view */
+    const card=document.getElementById('sc-found-card');
+    if(card&&card.scrollIntoView)card.scrollIntoView({behavior:'smooth',block:'center'});
+    document.getElementById('sc-qty').focus();
+  },100);
 }
+
+/* v5.16: เปิด Thai date picker สำหรับช่องวันหมดอายุ */
+function scOpenExpiryPicker(){
+  const trig=document.getElementById('sc-expiry-trigger');
+  const cur=trig?(trig.dataset.iso||''):'';
+  tdpOpen(cur,function(iso){
+    tdpUpdateTrigger('sc-expiry-trigger',iso,'แตะเพื่อเลือกวันที่');
+  },trig);
+}
+window.scOpenExpiryPicker=scOpenExpiryPicker;
 
 /* ─ แสดงปุ่มสลับหน่วย EA/PA/BP/CS ─ */
 function scRenderUnitSwitcher(qCS,qPA,qBP){
@@ -1835,6 +3498,18 @@ function scAddItem(){
   if(qtyInput<=0){scShowMsg('sc-add-msg','❌ กรุณากรอกจำนวนมากกว่า 0','var(--red)');return;}
 
   const prod=_scCurProd;
+
+  /* v5.16: ตรวจสอบ expiry date — required เมื่อ coverage > 30 วัน */
+  const expTrigger=document.getElementById('sc-expiry-trigger');
+  const expDateIso=expTrigger?(expTrigger.dataset.iso||''):'';
+  const required=isExpiryRequired(prod);
+  if(required&&!expDateIso){
+    scShowMsg('sc-add-msg','❌ สินค้านี้เคลื่อนช้า — ต้องระบุวันหมดอายุ','var(--red)');
+    return;
+  }
+  /* v5.16: ส่งเป็น YYYY/MM/DD (ไม่ใช่ พ.ศ. แล้ว) */
+  const expirySheetDate=expDateIso?isoToSheetDate(expDateIso):'';
+
   const unit=_scCurUnit||'CS';
   const mult=_scCurMultipliers[unit]||1;
   /* คำนวณเป็น EA: เช่น 2 CS × 36 = 72 EA */
@@ -1842,6 +3517,7 @@ function scAddItem(){
 
   const name=prod['PRODUCT NAME']||'—';
   const codeEA=prod['CODE EA']||'';
+  const codeCS=prod['CODE CS']||'';        /* v5.16: เก็บ CODE CS ด้วย */
   const qtyPerCS=safeInt(prod['QTY CS']||prod['QTY/CS']||prod['QTY']||prod['PACK SIZE']||prod['EA PER CS'])||1;
   const locC4=prod['Location']||prod['LOCATION']||prod['location']||prod['BC']||prod['LOC']||'';
 
@@ -1851,28 +3527,57 @@ function scAddItem(){
   const now=new Date();
   const timeStr=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-  /* ถ้าสินค้าซ้ำ ให้รวมยอด EA */
-  const existing=_scSession.find(x=>x.codeEA===codeEA&&codeEA!=='');
+  /* ถ้าสินค้าซ้ำ ให้รวมยอด EA — v5.16: dedup ด้วย EA ก่อน, ถ้าไม่มีให้ใช้ CS */
+  const dedupKey=codeEA||codeCS;
+  const existing=dedupKey?_scSession.find(x=>(x.codeEA===codeEA&&codeEA!=='')||(x.codeCS===codeCS&&codeCS!==''&&!codeEA)):null;
   if(existing){
     existing.qtyEA+=qtyEA;
     existing.diff=existing.qtyEA-existing.systemEA;
     existing.time=timeStr;
+    /* expiry: keep latest if provided */
+    if(expirySheetDate)existing.expiryDate=expirySheetDate;
     /* track entries */
     existing.entries=(existing.entries||[]).concat([{qty:qtyInput,unit,mult,ea:qtyEA}]);
   } else {
     _scSession.push({
-      name,codeEA,qtyPerCS,qtyEA,systemEA,diff,time:timeStr,locC4,prod,
+      name,codeEA,codeCS,qtyPerCS,qtyEA,systemEA,diff,time:timeStr,locC4,prod,
+      expiryDate:expirySheetDate,
       entries:[{qty:qtyInput,unit,mult,ea:qtyEA}]
     });
   }
 
-  scShowMsg('sc-add-msg','✅ '+qtyInput+' '+unit+' = '+qtyEA+' EA เพิ่มแล้ว','var(--green)');
+  scShowMsg('sc-add-msg','✅ '+qtyInput+' '+unit+' = '+qtyEA+' EA'+(expirySheetDate?' (หมดอายุ '+expirySheetDate+')':'')+' เพิ่มแล้ว','var(--green)');
   scRenderSession();
   setTimeout(()=>scHideFound(),600);
 }
 
 /* ─ render รายการ session ─ */
+/* v5.16: update session bar visibility */
+function updateSessionBar(){
+  const bar=document.getElementById('session-bar');
+  const cnt=document.getElementById('session-bar-count');
+  const sub=document.getElementById('session-bar-sub');
+  if(!bar)return;
+  const n=_scSession.length;
+  if(n>0){
+    bar.classList.add('visible');
+    if(cnt)cnt.textContent=n>99?'99+':String(n);
+    /* sum total EA */
+    const totalEA=_scSession.reduce((s,x)=>s+(x.qtyEA||0),0);
+    if(sub)sub.textContent='รวม '+totalEA.toLocaleString('th-TH')+' EA — แตะเพื่อดูและบันทึก';
+  } else {
+    bar.classList.remove('visible');
+  }
+  /* push body up so content not hidden by bar */
+  document.querySelectorAll('.has-bnav').forEach(el=>{
+    el.classList.toggle('has-session-bar',n>0);
+  });
+}
+window.updateSessionBar=updateSessionBar;
+
 function scRenderSession(){
+  /* v5.16: update sticky session bar */
+  updateSessionBar();
   const list=document.getElementById('sc-session-list');
   document.getElementById('sc-count-badge').textContent=_scSession.length;
   document.getElementById('sc-commit-btn').disabled=_scSession.length===0;
@@ -1895,6 +3600,7 @@ function scRenderSession(){
         <div class="sc-si-time">${item.time} ✏️</div>
       </div>
       ${entriesSummary?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${entriesSummary}</div>`:''}
+      ${item.expiryDate?`<div style="font-size:11px;color:#5a1f80;background:#faf5ff;border:1px solid #d8b8e8;border-radius:6px;padding:4px 8px;margin-bottom:6px;display:inline-block">📅 หมดอายุ: <b>${item.expiryDate}</b></div>`:''}
       <div class="sc-si-grid">
         <div class="sc-si-cell">
           <div class="sc-si-label">นับได้ (EA)</div>
@@ -2002,7 +3708,11 @@ async function scCommit(){
   scShowMsg('sc-commit-msg','กำลังส่ง...','var(--muted)');
 
   const now=new Date();
-  const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  /* v5.16: date = YYYY/MM/DD */
+  const yyyy=now.getFullYear();
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const dd=String(now.getDate()).padStart(2,'0');
+  const date=yyyy+'/'+mm+'/'+dd;
   const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
   const rows=_scSession.map(item=>({
@@ -2011,13 +3721,15 @@ async function scCommit(){
     action:'นับสต็อค',
     name:item.name,
     codeEA:item.codeEA,
+    codeCS:item.codeCS||'',
     qtyPerCS:item.qtyPerCS,
     countedEA:item.qtyEA,
     systemEA:item.systemEA,
     diffEA:item.diff,
-    locC4:item.locC4||'',         /* Location สินค้าใน C4 (column BC) */
-    branch:CONFIG.LOCATION||'',   /* สาขา */
-    user:currentUser?currentUser.name:'',
+    locC4:item.locC4||'',
+    branch:CONFIG.LOCATION||'',
+    user:getEffectiveUserName(),     /* v5.16: ใช้ override ถ้ามี */
+    expiryDate:item.expiryDate||'',  /* v5.16: format YYYY/MM/DD */
   }));
 
   /* fire-and-forget ทุก row (text/plain = ข้าม CORS preflight → เร็วขึ้น) */
@@ -2030,6 +3742,7 @@ async function scCommit(){
   });
 
   scShowMsg('sc-commit-msg','✅ บันทึก '+rows.length+' รายการเข้า Sheet แล้ว!','var(--green)');
+  toast('บันทึกนับสต็อค '+rows.length+' รายการ ✓','success');
   /* เก็บ session ไว้ดูต่อ แต่ mark ว่าส่งแล้ว */
   setTimeout(()=>{
     _scSession=[];
@@ -2037,6 +3750,453 @@ async function scCommit(){
     scShowMsg('sc-commit-msg','','');
   },2500);
 }
+
+/* v5.16: standalone EXPIRY block removed (merged into นับสต็อค) */
+
+/* ══════════════════════════════════════════════════
+   ของค้าง (Dead stock) — v5.16 compact cards
+   มีสต็อค C4 > 0 แต่ AVERAGE 3MONTH = 0 หรือว่าง
+   ══════════════════════════════════════════════════ */
+function deadRender(){
+  const list=document.getElementById('dead-list');
+  const stat=document.getElementById('dead-status');
+  const stxt=document.getElementById('dead-status-text');
+  const dot=stat?stat.querySelector('.sdot'):null;
+
+  if(!allData||!allData.length){
+    if(dot)dot.className='sdot err';
+    if(stxt)stxt.textContent='ยังไม่ได้โหลดข้อมูลสินค้า';
+    list.innerHTML='';
+    return;
+  }
+
+  if(dot)dot.className='sdot loading';
+  if(stxt)stxt.textContent='กำลังกรองสินค้า...';
+
+  /* v5.16: กรอง stock C4 > 0 และ ขายเฉลี่ย/วัน = 0 (ไม่ขาย) */
+  const q=(_summarySearchQuery||'').trim().toLowerCase();
+  const dead=allData.filter(r=>{
+    const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
+    const sEA=salesPerDayEA(r);
+    if(!(stock>0&&sEA<=0))return false;
+    /* search filter */
+    if(q){
+      const name=String(r['PRODUCT NAME']||'').toLowerCase();
+      const sku=String(r['CODE EA']||'').toLowerCase();
+      const skuCS=String(r['CODE CS']||'').toLowerCase();
+      const loc=String(r['Location']||r['LOCATION']||r['BC']||r['LOC']||'').toLowerCase();
+      if(!name.includes(q)&&!sku.includes(q)&&!skuCS.includes(q)&&!loc.includes(q))return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    const sa=parseFloat(safeStockStr(a['STOCK C4']))||0;
+    const sb=parseFloat(safeStockStr(b['STOCK C4']))||0;
+    return sb-sa;  /* DESC: เยอะสุดขึ้นก่อน */
+  });
+
+  if(dot)dot.className='sdot ok';
+  if(stxt)stxt.textContent='พบ '+dead.length.toLocaleString('th-TH')+' รายการ'+(q?' (กรอง: "'+q+'")':'')+' — เรียงสต็อคเยอะ → น้อย';
+
+  if(!dead.length){
+    list.innerHTML='<div class="sc-empty">'+(q?'ไม่พบสินค้าที่ตรงคำค้นหา':'ไม่มีสินค้าค้างในขณะนี้ 🎉')+'</div>';
+    return;
+  }
+
+  /* compact card view — 1 บรรทัดต่อสินค้า */
+  list.innerHTML=dead.map((r,i)=>{
+    const idx=allData.indexOf(r);
+    const name=r['PRODUCT NAME']||'—';
+    const sku=r['CODE EA']||r['CODE CS']||'';
+    const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
+    const stockW4=Math.floor(parseFloat(safeStockStr(r['STOCK W4']))||0);
+    const loc=r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']||'';
+    const rankBadge=i<3?`<span class="dead-rank">TOP ${i+1}</span>`:'';
+    const meta=[sku,loc?'📍'+loc:''].filter(Boolean).join(' · ');
+    return `<div class="dead-item" onclick="deadOpenForCount(${idx})">
+      <div style="flex:1;min-width:0">
+        <div class="dead-name">${rankBadge}${name}</div>
+        <div class="dead-meta">${meta}</div>
+      </div>
+      <span class="dead-pill dead-pill-c4">C4: ${stock.toLocaleString('th-TH')}</span>
+      ${stockW4>0?`<span class="dead-pill dead-pill-w4">W4: ${stockW4.toLocaleString('th-TH')}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* แตะการ์ด → ไปหน้านับสต็อค + เลือกสินค้านี้พร้อมเลย */
+function deadOpenForCount(idx){
+  const prod=allData[idx];
+  if(!prod)return;
+  navTo('stock');
+  /* delay เพื่อให้หน้า stock render ก่อน */
+  setTimeout(()=>{
+    try{scShowFound(prod,'CS');}
+    catch(e){console.warn('scShowFound error',e);}
+  },120);
+}
+
+window.deadRender=deadRender;
+window.deadOpenForCount=deadOpenForCount;
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Summary tab: sub-tab switching + search
+   ══════════════════════════════════════════════════ */
+let _summaryCurTab='deadstock';
+let _summarySearchQuery='';
+let _summarySearchTimer=null;
+
+function summarySwitch(tab){
+  _summaryCurTab=tab;
+  document.getElementById('subtab-deadstock').classList.toggle('active',tab==='deadstock');
+  document.getElementById('subtab-expiry').classList.toggle('active',tab==='expiry');
+  document.getElementById('summary-deadstock-section').style.display=tab==='deadstock'?'':'none';
+  document.getElementById('summary-expiry-section').style.display=tab==='expiry'?'':'none';
+  summaryReload();
+}
+window.summarySwitch=summarySwitch;
+
+function summaryClearSearch(){
+  const inp=document.getElementById('summary-search');
+  if(inp)inp.value='';
+  _summarySearchQuery='';
+  const btn=document.getElementById('summary-search-clear');
+  if(btn)btn.style.display='none';
+  /* re-render ทั้ง 2 sub-tab */
+  if(_summaryCurTab==='deadstock'){deadRender();}
+  else if(_expiryGroupsCache){expiryRenderFiltered();}
+}
+window.summaryClearSearch=summaryClearSearch;
+
+/* bind summary search input */
+(function bindSummarySearch(){
+  function attach(){
+    const inp=document.getElementById('summary-search');
+    if(!inp)return;
+    if(inp.dataset.bound)return;
+    inp.dataset.bound='1';
+    inp.addEventListener('input',function(){
+      const v=this.value;
+      const btn=document.getElementById('summary-search-clear');
+      if(btn)btn.style.display=v?'block':'none';
+      clearTimeout(_summarySearchTimer);
+      _summarySearchTimer=setTimeout(()=>{
+        _summarySearchQuery=v;
+        if(_summaryCurTab==='deadstock'){deadRender();}
+        else if(_expiryGroupsCache){expiryRenderFiltered();}
+        else expiryListRefresh();
+      },200);
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',attach);
+  } else {
+    attach();
+  }
+})();
+
+function summaryReload(force){
+  if(_summaryCurTab==='deadstock'){
+    deadRender();
+  } else {
+    if(force)_expiryGroupsCache=null;
+    expiryListRefresh(force);
+  }
+}
+window.summaryReload=summaryReload;
+
+/* ══════════════════════════════════════════════════
+   v5.16 — Expiry list page (ใกล้หมดอายุ)
+   ดึงจาก sheet นับสต็อค → group by codeEA/codeCS → แสดง lots
+   ══════════════════════════════════════════════════ */
+let _expiryListLoadedAt=0;
+
+function _parseThaiBE(dateStr){
+  /* "15/05/2569" → Date object (BE → CE: -543) */
+  if(!dateStr)return null;
+  const s=String(dateStr).trim();
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m)return null;
+  const d=parseInt(m[1]),mo=parseInt(m[2]),yBE=parseInt(m[3]);
+  if(yBE<2400)return null;       /* ไม่ใช่ พ.ศ. — เผื่อเขียน ค.ศ. */
+  const yCE=yBE-543;
+  const dt=new Date(yCE,mo-1,d);
+  return isNaN(dt.getTime())?null:dt;
+}
+
+function _daysFromNow(date){
+  if(!date)return null;
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const diffMs=date.getTime()-today.getTime();
+  return Math.floor(diffMs/(1000*60*60*24));
+}
+
+function _expClassFor(days){
+  if(days===null)return 'lot-yellow';
+  if(days<=0)return 'lot-expired';
+  if(days<=30)return 'lot-red';
+  if(days<=60)return 'lot-orange';
+  if(days<=120)return 'lot-yellow';
+  return 'lot-green';
+}
+
+function _expDaysLabel(days){
+  if(days===null)return '?';
+  if(days===0)return 'วันนี้';
+  if(days<0)return 'หมดแล้ว '+Math.abs(days)+'ว';
+  return 'อีก '+days+'ว';
+}
+
+let _expiryGroupsCache=null;
+
+async function expiryListRefresh(forceReload){
+  const stat=document.getElementById('exp-status');
+  const stxt=document.getElementById('exp-status-text');
+  const dot=stat?stat.querySelector('.sdot'):null;
+  const list=document.getElementById('exp-list');
+
+  /* v5.16: ถ้ามี cache แล้ว และไม่ force = ไม่ต้อง refetch (ใช้สำหรับ search filter) */
+  if(_expiryGroupsCache&&!forceReload){
+    expiryRenderFiltered();
+    return;
+  }
+
+  if(dot)dot.className='sdot loading';
+  if(stxt)stxt.textContent='กำลังโหลดประวัติวันหมดอายุ...';
+  list.innerHTML='';
+
+  try{
+    const rows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.STOCK_COUNT_TAB);
+    /* กรองเฉพาะที่มีวันหมดอายุ */
+    const lots=[];
+    rows.forEach(r=>{
+      const expRaw=String(r['วันหมดอายุ']||'').trim();
+      if(!expRaw)return;
+      const expDate=_parseThaiBE(expRaw);
+      const codeEA=String(r['CODE EA']||'').trim();
+      const codeCS=String(r['CODE CS']||'').trim();
+      const name=String(r['ชื่อสินค้า']||'').trim();
+      const countedEA=parseInt(r['นับได้ (EA)']||r['นับได้']||0)||0;
+      const qtyPerCS=parseInt(r['QTY/CS']||r['QTY CS']||1)||1;
+      const cs=qtyPerCS>0?Math.round(countedEA/qtyPerCS):0;
+      const groupKey=codeEA||codeCS||name;
+      lots.push({
+        groupKey,name,codeEA,codeCS,
+        expRaw,expDate,
+        days:_daysFromNow(expDate),
+        countedEA,qtyPerCS,cs,
+        recDate:r['วันที่']||'',
+        user:r['ผู้นับ']||r['ผู้แจ้ง']||''
+      });
+    });
+
+    /* เรียง lot ตาม days ASC (ใกล้หมดสุดก่อน) */
+    lots.sort((a,b)=>{
+      const da=a.days===null?9999:a.days;
+      const db=b.days===null?9999:b.days;
+      return da-db;
+    });
+
+    /* group by groupKey แต่ยังคงลำดับของ lot ตาม sort เดิม */
+    const groupsMap=new Map();
+    lots.forEach(lot=>{
+      if(!groupsMap.has(lot.groupKey)){
+        groupsMap.set(lot.groupKey,{name:lot.name,codeEA:lot.codeEA,codeCS:lot.codeCS,lots:[]});
+      }
+      groupsMap.get(lot.groupKey).lots.push(lot);
+    });
+    const groups=[...groupsMap.values()];
+    /* กลุ่ม sort ตาม min days ของ lot ใน group */
+    groups.sort((a,b)=>{
+      const ma=Math.min(...a.lots.map(l=>l.days===null?9999:l.days));
+      const mb=Math.min(...b.lots.map(l=>l.days===null?9999:l.days));
+      return ma-mb;
+    });
+
+    /* cache + render */
+    _expiryGroupsCache=groups;
+    expiryRenderFiltered();
+    _expiryListLoadedAt=Date.now();
+  }catch(e){
+    if(dot)dot.className='sdot err';
+    if(stxt)stxt.textContent='โหลดข้อมูลไม่สำเร็จ — '+(e.message||e);
+    list.innerHTML='';
+  }
+}
+
+/* v5.16: render เฉพาะส่วนที่ผ่านเงื่อนไขการ search */
+function expiryRenderFiltered(){
+  const stat=document.getElementById('exp-status');
+  const stxt=document.getElementById('exp-status-text');
+  const dot=stat?stat.querySelector('.sdot'):null;
+  const list=document.getElementById('exp-list');
+  if(!_expiryGroupsCache){
+    if(list)list.innerHTML='';
+    return;
+  }
+  const q=(_summarySearchQuery||'').trim().toLowerCase();
+  const groups=_expiryGroupsCache.filter(g=>{
+    if(!q)return true;
+    const name=(g.name||'').toLowerCase();
+    const ea=(g.codeEA||'').toLowerCase();
+    const cs=(g.codeCS||'').toLowerCase();
+    return name.includes(q)||ea.includes(q)||cs.includes(q);
+  });
+  const totalLots=groups.reduce((sum,g)=>sum+g.lots.length,0);
+
+  if(dot)dot.className='sdot ok';
+  if(stxt)stxt.textContent='พบ '+totalLots.toLocaleString('th-TH')+' lot จาก '+groups.length.toLocaleString('th-TH')+' สินค้า'+(q?' (กรอง: "'+q+'")':'');
+
+  if(!groups.length){
+    list.innerHTML='<div class="sc-empty">'+(q?'ไม่พบสินค้าที่ตรงคำค้นหา':'ยังไม่มีข้อมูลวันหมดอายุ — เริ่มบันทึกที่หน้านับสต็อค')+'</div>';
+    return;
+  }
+
+  list.innerHTML=groups.map(g=>{
+    const lotRows=g.lots.map(lot=>{
+      const cls=_expClassFor(lot.days);
+      const daysLabel=_expDaysLabel(lot.days);
+      return `<div class="exp-lot-row ${cls}">
+        <span class="exp-lot-date">📅 ${lot.expRaw}</span>
+        <span class="exp-lot-qty">${lot.cs} ลัง</span>
+        <span class="exp-lot-days">${daysLabel}</span>
+      </div>`;
+    }).join('');
+    const codeBadge=g.codeEA?'EA: '+g.codeEA:(g.codeCS?'CS: '+g.codeCS:'');
+    return `<div class="exp-group">
+      <div class="exp-group-name">${g.name}</div>
+      <div class="exp-group-meta">${codeBadge} • ${g.lots.length} lot</div>
+      ${lotRows}
+    </div>`;
+  }).join('');
+}
+window.expiryListRefresh=expiryListRefresh;
+window.expiryRenderFiltered=expiryRenderFiltered;
+
+/* ══════════════════════════════════════════════════
+   v5.16 — สินค้ายิงไม่เจอ (Unknown product modal)
+   ══════════════════════════════════════════════════ */
+let _unkBarcode='';
+let _unkUnit='EA';
+
+function openUnkModal(barcode){
+  _unkBarcode=String(barcode||'').trim();
+  _unkUnit='EA';
+  document.getElementById('unk-barcode').textContent=_unkBarcode||'—';
+  document.getElementById('unk-name').value='';
+  document.getElementById('unk-loc').value='';
+  document.getElementById('unk-qty').value='1';
+  document.getElementById('unk-eapercs').value='1';
+  document.getElementById('unk-eapercs-field').style.display='none';
+  /* reset unit buttons */
+  document.querySelectorAll('[data-unk-unit]').forEach(b=>{
+    b.classList.toggle('active',b.dataset.unkUnit==='EA');
+  });
+  document.getElementById('unk-msg').textContent='';
+  document.getElementById('unk-msg').style.color='';
+  document.getElementById('unk-submit').disabled=false;
+  document.getElementById('unk-submit').textContent='บันทึกในรายการนับสต็อค';
+  document.getElementById('unk-overlay').classList.add('open');
+  setTimeout(()=>{
+    try{document.getElementById('unk-name').focus();}catch(e){}
+  },180);
+}
+window.openUnkModal=openUnkModal;
+
+function unkSetUnit(unit){
+  _unkUnit=unit;
+  document.querySelectorAll('[data-unk-unit]').forEach(b=>{
+    b.classList.toggle('active',b.dataset.unkUnit===unit);
+  });
+  /* CS → ขอจำนวน EA per CS เพิ่ม */
+  document.getElementById('unk-eapercs-field').style.display=unit==='CS'?'':'none';
+}
+window.unkSetUnit=unkSetUnit;
+
+function closeUnkModal(){
+  document.getElementById('unk-overlay').classList.remove('open');
+}
+window.closeUnkModal=closeUnkModal;
+
+function unkAdjQty(d){
+  const el=document.getElementById('unk-qty');
+  el.value=Math.max(1,(parseInt(el.value)||1)+d);
+}
+window.unkAdjQty=unkAdjQty;
+
+function unkSubmit(){
+  const name=document.getElementById('unk-name').value.trim();
+  const loc=document.getElementById('unk-loc').value.trim();
+  const qty=parseInt(document.getElementById('unk-qty').value)||0;
+  const eaPerCS=parseInt(document.getElementById('unk-eapercs').value)||1;
+  const msg=document.getElementById('unk-msg');
+
+  if(!name){msg.textContent='❌ กรุณาพิมพ์ชื่อสินค้า';msg.style.color='var(--red)';return;}
+  if(!loc){msg.textContent='❌ กรุณาพิมพ์ Location';msg.style.color='var(--red)';return;}
+  if(qty<=0){msg.textContent='❌ จำนวนต้องมากกว่า 0';msg.style.color='var(--red)';return;}
+  if(_unkUnit==='CS'&&eaPerCS<=0){
+    msg.textContent='❌ กรุณาระบุจำนวน EA ต่อ 1 ลัง';msg.style.color='var(--red)';return;
+  }
+
+  /* คำนวณ qtyPerCS + qtyEA จาก unit */
+  const qtyPerCS=_unkUnit==='CS'?eaPerCS:1;
+  const qtyEA=_unkUnit==='CS'?qty*eaPerCS:qty;
+  const systemEA=0;
+  const diff=qtyEA-systemEA;
+
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  const fakeProd={
+    'PRODUCT NAME':'(ไม่เจอ) '+name,
+    'CODE EA':_unkBarcode,
+    'CODE CS':'',
+    'STOCK C4':'0',
+    'STOCK W4':'0',
+    'AVERAGE 3MONTH':'0',
+    'Location':loc,
+    'QTY CS':qtyPerCS,
+    '_unknown':true
+  };
+
+  _scSession.push({
+    name:'(ไม่เจอ) '+name,
+    codeEA:_unkBarcode,
+    codeCS:'',
+    qtyPerCS,
+    qtyEA,
+    systemEA,
+    diff,
+    time:timeStr,
+    locC4:loc,
+    prod:fakeProd,
+    expiryDate:'',
+    entries:[{qty,unit:_unkUnit,mult:_unkUnit==='CS'?eaPerCS:1,ea:qtyEA}],
+    _unknown:true
+  });
+
+  scRenderSession();
+  toast('เพิ่ม "'+name+'" ('+qty+' '+_unkUnit+' = '+qtyEA+' EA) ✓','success');
+  closeUnkModal();
+  navTo('stock');
+  /* clear search input */
+  const si=document.getElementById('sc-search-input');
+  if(si)si.value='';
+  const cb=document.getElementById('sc-clear-btn');
+  if(cb)cb.classList.remove('visible');
+  document.getElementById('sc-results-area').innerHTML='';
+}
+window.unkSubmit=unkSubmit;
+
+/* ปิด unk modal เมื่อกดพื้นหลัง */
+(function bindUnkOverlay(){
+  const ov=document.getElementById('unk-overlay');
+  if(ov){
+    ov.addEventListener('click',function(e){
+      if(e.target===this)closeUnkModal();
+    });
+  }
+})();
 
 /* ══ HISTORY — ดึงข้อมูลจาก 2 tab แล้วโชว์รวมวันนี้ ══ */
 let _histLoadedOnce=false;
@@ -2112,7 +4272,8 @@ async function histRefresh(){
       locC4:r['Location C4']||'',
       systemEA:r['ระบบ (EA)']||'',
       diffEA:r['ขาด/เกิน (EA)']||'',
-      qtyPerCS:r['QTY/CS']||''
+      qtyPerCS:r['QTY/CS']||'',
+      expiryDate:r['วันหมดอายุ']||''   /* v5.16: from new column 12 in นับสต็อค */
     });
   });
 
@@ -2184,6 +4345,7 @@ function _histRenderList(items){
       const diffColor=diff>0?'var(--green)':diff<0?'var(--urgent)':'var(--muted)';
       const diffSign=diff>0?'+':'';
       detail=`นับได้: <b>${it.qty}</b> EA • ระบบ: ${it.systemEA} EA • ขาด/เกิน: <b style="color:${diffColor}">${diffSign}${diff}</b> EA`;
+      if(it.expiryDate){detail+=` <br>📅 หมดอายุ: <b style="color:#5a1f80">${it.expiryDate}</b>`;}
     } else {
       detail=`จำนวน: <b>${it.qty}</b> CS`;
       if(it.stockC4)detail+=` • สต็อก C4: ${it.stockC4}`;
@@ -2346,7 +4508,17 @@ document.getElementById('sc-edit-overlay').addEventListener('click',function(e){
 
 (function boot(){
   const saved=loadSession();
-  if(saved&&saved.username&&saved.role){currentUser=saved;enterApp();}
+  if(saved&&isSessionValid(saved)){
+    /* session ยังใช้ได้ — เข้าแอป */
+    currentUser=saved;
+    enterApp();
+  } else if(saved){
+    /* มี session แต่หมดอายุแล้ว — ล้างทิ้งและให้ login ใหม่ */
+    clearSession();
+    setTimeout(()=>{
+      toast('Session หมดอายุ — กรุณา login ใหม่','warning');
+    },500);
+  }
   document.getElementById('torch-btn').style.display='none';
 })();
 </script>
