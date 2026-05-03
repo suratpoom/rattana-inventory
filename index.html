@@ -90,7 +90,7 @@ z-index:999;
 
 /* List */
 .result-count{font-size:13px;color:var(–muted);margin-bottom:10px;padding:0 2px}
-.list-item{background:var(–white);border-radius:var(–radius);border:1px solid var(–border);padding:14px 16px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
+.list-item{background:#ffffff;border-radius:var(–radius);border:1px solid var(–border);padding:14px 16px;cursor:pointer;margin-bottom:10px;transition:border-color .15s;box-shadow:0 2px 8px rgba(13,43,94,.06)}
 .list-item:active{border-color:var(–navy2);background:#f0f4fb}
 .list-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .lthumb{width:56px;height:56px;border-radius:10px;background:#f0f4fa;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(–border)}
@@ -112,7 +112,7 @@ z-index:999;
 .stock-num{font-size:13px;font-weight:600;color:var(–navy)}
 
 /* Detail — รูปลดจาก 168 → 130 (V2.1 FIX #2) */
-.result-card{background:var(–white);border-radius:var(–radius);border:1px solid var(–border);overflow:hidden;margin-bottom:12px}
+.result-card{background:#ffffff;border-radius:var(–radius);border:1px solid var(–border);overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(13,43,94,.06)}
 /* v7.9: รูปย้ายซ้าย thumbnail — ซ่อน full-width image เดิม */
 .result-img-wrap{display:none}
 .result-img-ph{display:none}
@@ -2085,7 +2085,7 @@ const _DEMO_PRODUCTS = [
   },
 ];
 
-/* ══ v9.2 — วันหมดอายุล่าสุด cache ══ */
+/* ══ v9.3 — วันหมดอายุล่าสุด cache ══ */
 let _expiryLatestMap = {};
 
 async function loadExpiryLatestMap(){
@@ -2108,8 +2108,8 @@ async function loadExpiryLatestMap(){
       map[code] = { expiryDate:exp||'', daysLeft };
     });
     _expiryLatestMap = map;
-    console.log('[v9.2] Expiry map loaded:', Object.keys(map).length, 'entries');
-  }catch(e){ _expiryLatestMap = {}; console.warn('[v9.2] Expiry load failed:', e.message); }
+    console.log('[v9.3] Expiry map loaded:', Object.keys(map).length, 'entries');
+  }catch(e){ _expiryLatestMap = {}; console.warn('[v9.3] Expiry load failed:', e.message); }
 }
 window.loadExpiryLatestMap = loadExpiryLatestMap;
 
@@ -2136,7 +2136,7 @@ const CONFIG = {
   NOPRICE_TAB:      'สินค้าไม่มีราคาขาย',
   EXPIRY_LATEST_TAB:'วันหมดอายุล่าสุด',   /* v7.9: sheet วันหมดอายุล่าสุด */
   PRICE_CHECK_TAB:  'เช็คราคา',
-  EXPIRY_SKIP_DAYS: 60,    /* v9.2: ถ้าเช็คแล้วและเหลือ > 60 วัน = ไม่บังคับ */   /* coverage > 30d + last expiry > 120d = ไม่บังคับ */
+  EXPIRY_SKIP_DAYS: 60,    /* v9.3: ถ้าเช็คแล้วและเหลือ > 60 วัน = ไม่บังคับ */   /* coverage > 30d + last expiry > 120d = ไม่บังคับ */
   VERIFIED_TAB:    'ผ่านการตรวจ',  /* v7.9: sheet สินค้าที่เช็คราคา=ตรงแล้ว */
   ROLE_RESTRICTED: 5,
   SESSION_KEY:     'rattana_v11_session',  /* ← v7.9: เช็คราคา + ตั้งกอง */                             /* ← v7.9: Bumped (force re-login, new shape with loginAt) */
@@ -3280,12 +3280,6 @@ function renderList(results,q){
         </div>
       </div>
       ${buildShelfHTML(r,{compact:true})}
-      <div class="result-actions">
-        <button class="result-action-btn ra-beik" onclick="quickAction(${idx},'เบิก')">📦 เบิก</button>
-        <button class="result-action-btn ra-khad" onclick="quickAction(${idx},'สินค้าขาด')">🚨 ขาด</button>
-        <button class="result-action-btn ra-nub" onclick="quickAction(${idx},'นับ')">✅ นับสต็อค</button>
-        <button class="result-action-btn ra-price" onclick="quickAction(${idx},'ราคาไม่ตรง')">❌ ราคาไม่ตรง</button>
-      </div>
     </div>`;
   });
   area.innerHTML=html;
